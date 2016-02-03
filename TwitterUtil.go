@@ -11,7 +11,7 @@ import (
 	"github.com/thoj/go-ircevent"
 )
 
-type RandomLocation struct {
+type TweetLocation struct {
 	err    error
 	result anaconda.GeoSearchResult
 	lat    string
@@ -19,6 +19,8 @@ type RandomLocation struct {
 }
 
 type TwitterUtil struct {
+	LocationMode int
+	Location     TweetLocation
 }
 
 func (*TwitterUtil) GetHelp(e *irc.Event) {
@@ -26,25 +28,59 @@ func (*TwitterUtil) GetHelp(e *irc.Event) {
 	e.Connection.Privmsgf(e.Arguments[0], "!tr <id> <msg> \t- Sends a reply to a tweet")
 	e.Connection.Privmsgf(e.Arguments[0], "!tf <handle> \t- Follow somebody on twatter")
 	e.Connection.Privmsgf(e.Arguments[0], "!tdm <handle> <msg>\t- Send a DM to somebody")
+	e.Connection.Privmsgf(e.Arguments[0], "!tloc <location/auto>\t- Sets tweet location")
 }
 
-func (*TwitterUtil) GetRandLoc(api *anaconda.TwitterApi) *RandomLocation {
-	rand.Seed(int64(time.Now().Unix()))
+func (t *TwitterUtil) SetLocation(e *irc.Event, txt string) {
+	if txt == "" {
+		t.Location = TweetLocation{}
+		t.LocationMode = 0
+	} else {
+		t.LocationMode = 1
+		anaconda.SetConsumerKey(opt.TwitterAppKey)
+		anaconda.SetConsumerSecret(opt.TwitterAppSecret)
+		api := anaconda.NewTwitterApi(opt.TwitterAuthKey, opt.TwitterAuthSecret)
 
-	rl := new(RandomLocation)
-	rl.lat = fmt.Sprintf("%.4f", (float32(180)*rand.Float32())-float32(90))
-	rl.long = fmt.Sprintf("%.4f", (float32(360)*rand.Float32())-float32(180))
+		vals := url.Values{}
+		vals.Add("query", url.QueryEscape(txt))
 
-	vals := url.Values{}
-	vals.Add("lat", rl.lat)
-	vals.Add("long", rl.long)
+		pl, ple := api.GeoSearch(vals)
+		if ple == nil {
+			t.Location.result = pl
+			t.Location.err = nil
 
-	pl, ple := api.GeoSearch(vals)
+			t.Location.lat = fmt.Sprintf("%.4f", pl.Result.Places[0].Centroid[0])
+			t.Location.long = fmt.Sprintf("%.4f", pl.Result.Places[0].Centroid[1])
 
-	rl.err = ple
-	rl.result = pl
+			e.Connection.Privmsgf(e.Arguments[0], "[%s] Tweet location set to: %s (https://www.google.com/maps?q=%s,%s)", e.Nick, pl.Result.Places[0].FullName, t.Location.long, t.Location.lat)
+		} else {
+			e.Connection.Privmsgf(e.Arguments[0], "[%s] Tweet location error: %s", e.Nick, ple)
+		}
+		api.Close()
+	}
+}
 
-	return rl
+func (t *TwitterUtil) GetLoc(api *anaconda.TwitterApi) *TweetLocation {
+	if t.LocationMode == 0 {
+		rand.Seed(int64(time.Now().Unix()))
+
+		rl := new(TweetLocation)
+		rl.lat = fmt.Sprintf("%.4f", (float32(180)*rand.Float32())-float32(90))
+		rl.long = fmt.Sprintf("%.4f", (float32(360)*rand.Float32())-float32(180))
+
+		vals := url.Values{}
+		vals.Add("lat", rl.lat)
+		vals.Add("long", rl.long)
+
+		pl, ple := api.GeoSearch(vals)
+
+		rl.err = ple
+		rl.result = pl
+
+		return rl
+	} else {
+		return &t.Location
+	}
 }
 
 func (t *TwitterUtil) SendTweet(e *irc.Event, q string) {
@@ -54,7 +90,7 @@ func (t *TwitterUtil) SendTweet(e *irc.Event, q string) {
 
 	vals := url.Values{}
 
-	pl := t.GetRandLoc(api)
+	pl := t.GetLoc(api)
 	if pl.err == nil {
 		vals.Add("lat", pl.lat)
 		vals.Add("long", pl.long)
@@ -71,20 +107,20 @@ func (t *TwitterUtil) SendTweet(e *irc.Event, q string) {
 	api.Close()
 }
 
-func (*TwitterUtil) SendTweetResponse(e *irc.Event, q string, tid string) {
+func (t *TwitterUtil) SendTweetResponse(e *irc.Event, q string, tid string) {
 	anaconda.SetConsumerKey(opt.TwitterAppKey)
 	anaconda.SetConsumerSecret(opt.TwitterAppSecret)
 	api := anaconda.NewTwitterApi(opt.TwitterAuthKey, opt.TwitterAuthSecret)
 
 	vals := url.Values{}
-	rand.Seed(int64(time.Now().Unix()))
-	vals.Add("lat", fmt.Sprintf("%.4f", (float32(180)*rand.Float32())-float32(90)))
-	vals.Add("long", fmt.Sprintf("%.4f", (float32(360)*rand.Float32())-float32(180)))
 
-	pl, ple := api.GeoSearch(vals)
-	if ple == nil {
-		vals.Add("place_id", pl.Result.Places[0].ID)
+	pl := t.GetLoc(api)
+	if pl.err == nil {
+		vals.Add("lat", pl.lat)
+		vals.Add("long", pl.long)
+		vals.Add("place_id", pl.result.Result.Places[0].ID)
 	}
+
 	vals.Add("in_reply_to_status_id", tid)
 
 	tw, ter := api.PostTweet(q, vals)

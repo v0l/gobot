@@ -36,6 +36,7 @@ type Options struct {
 }
 
 var opt = Options{}
+var twu = TwitterUtil{0, TweetLocation{}}
 
 func OnJoin(e *irc.Event) {
 	if e.Nick != opt.Nick {
@@ -79,7 +80,6 @@ func OnPrivMsg(e *irc.Event) {
 			}
 		case "!thelp":
 			{
-				twu := new(TwitterUtil)
 				twu.GetHelp(e)
 				break
 			}
@@ -169,7 +169,6 @@ func OnPrivMsg(e *irc.Event) {
 			}
 		case "!tf":
 			{
-				twu := new(TwitterUtil)
 				twu.Follow(e, cmd[1])
 				break
 			}
@@ -177,7 +176,6 @@ func OnPrivMsg(e *irc.Event) {
 			{
 				q := strings.TrimSpace(strings.Replace(args[1], "!t ", ":: ", -1))
 
-				twu := new(TwitterUtil)
 				twu.SendTweet(e, q)
 				break
 			}
@@ -186,7 +184,6 @@ func OnPrivMsg(e *irc.Event) {
 				tid := cmd[1]
 				q := strings.TrimSpace(strings.Replace(args[1], "!tr "+tid, "::", -1))
 
-				twu := new(TwitterUtil)
 				twu.SendTweetResponse(e, q, tid)
 				break
 			}
@@ -195,8 +192,19 @@ func OnPrivMsg(e *irc.Event) {
 				usr := cmd[1]
 				q := strings.TrimSpace(strings.Replace(args[1], "!tdm "+usr, "", -1))
 
-				twu := new(TwitterUtil)
 				twu.SendDM(e, usr, q)
+				break
+			}
+		case "!tloc":
+			{
+				q := strings.TrimSpace(strings.Replace(args[1], "!tloc ", "", -1))
+
+				if q == "!tloc" {
+					twu.SetLocation(e, "")
+				} else {
+					twu.SetLocation(e, q)
+				}
+
 				break
 			}
 		}
@@ -262,8 +270,8 @@ func main() {
 
 	go func() {
 		<-irc_ready
-		twu := new(TwitterUtil)
-		twu.ListenToUserStream(i)
+		i.Join("#twittertest")
+		//twu.ListenToUserStream(i)
 	}()
 
 	i.Loop()
