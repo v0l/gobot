@@ -11,6 +11,13 @@ import (
 	"github.com/thoj/go-ircevent"
 )
 
+type RandomLocation struct {
+	err    error
+	result anaconda.GeoSearchResult
+	lat    string
+	long   string
+}
+
 type TwitterUtil struct {
 }
 
@@ -21,19 +28,37 @@ func (*TwitterUtil) GetHelp(e *irc.Event) {
 	e.Connection.Privmsgf(e.Arguments[0], "!tdm <handle> <msg>\t- Send a DM to somebody")
 }
 
-func (*TwitterUtil) SendTweet(e *irc.Event, q string) {
+func (*TwitterUtil) GetRandLoc(api *anaconda.TwitterApi) *RandomLocation {
+	rand.Seed(int64(time.Now().Unix()))
+
+	rl := new(RandomLocation)
+	rl.lat = fmt.Sprintf("%.4f", (float32(180)*rand.Float32())-float32(90))
+	rl.long = fmt.Sprintf("%.4f", (float32(360)*rand.Float32())-float32(180))
+
+	vals := url.Values{}
+	vals.Add("lat", rl.lat)
+	vals.Add("long", rl.long)
+
+	pl, ple := api.GeoSearch(vals)
+
+	rl.err = ple
+	rl.result = pl
+
+	return rl
+}
+
+func (t *TwitterUtil) SendTweet(e *irc.Event, q string) {
 	anaconda.SetConsumerKey(opt.TwitterAppKey)
 	anaconda.SetConsumerSecret(opt.TwitterAppSecret)
 	api := anaconda.NewTwitterApi(opt.TwitterAuthKey, opt.TwitterAuthSecret)
 
 	vals := url.Values{}
-	rand.Seed(int64(time.Now().Unix()))
-	vals.Add("lat", fmt.Sprintf("%.4f", (float32(180)*rand.Float32())-float32(90)))
-	vals.Add("long", fmt.Sprintf("%.4f", (float32(360)*rand.Float32())-float32(180)))
 
-	pl, ple := api.GeoSearch(vals)
-	if ple == nil {
-		vals.Add("place_id", pl.Result.Places[0].ID)
+	pl := t.GetRandLoc(api)
+	if pl.err == nil {
+		vals.Add("lat", pl.lat)
+		vals.Add("long", pl.long)
+		vals.Add("place_id", pl.result.Result.Places[0].ID)
 	}
 
 	tw, ter := api.PostTweet(q, vals)
@@ -92,7 +117,7 @@ func (*TwitterUtil) SendDM(e *irc.Event, usr, q string) {
 	anaconda.SetConsumerSecret(opt.TwitterAppSecret)
 	api := anaconda.NewTwitterApi(opt.TwitterAuthKey, opt.TwitterAuthSecret)
 
-	dm, ter := api.PostDMToScreenName(usr, q)
+	dm, ter := api.PostDMToScreenName(q, usr)
 	if ter == nil {
 		e.Connection.Privmsgf(e.Arguments[0], "[%s] DM sent to @%s", e.Nick, dm.RecipientScreenName)
 	} else {
