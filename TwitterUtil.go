@@ -14,6 +14,13 @@ import (
 type TwitterUtil struct {
 }
 
+func (*TwitterUtil) GetHelp(e *irc.Event) {
+	e.Connection.Privmsgf(e.Arguments[0], "!t <msg> \t- Sends a tweet!")
+	e.Connection.Privmsgf(e.Arguments[0], "!tr <id> <msg> \t- Sends a reply to a tweet")
+	e.Connection.Privmsgf(e.Arguments[0], "!tf <handle> \t- Follow somebody on twatter")
+	e.Connection.Privmsgf(e.Arguments[0], "!tdm <handle> <msg>\t- Send a DM to somebody")
+}
+
 func (*TwitterUtil) SendTweet(e *irc.Event, q string) {
 	anaconda.SetConsumerKey(opt.TwitterAppKey)
 	anaconda.SetConsumerSecret(opt.TwitterAppSecret)
@@ -35,6 +42,8 @@ func (*TwitterUtil) SendTweet(e *irc.Event, q string) {
 	} else {
 		e.Connection.Privmsgf(e.Arguments[0], "[%s] Tweet send failed: %s", e.Nick, ter)
 	}
+
+	api.Close()
 }
 
 func (*TwitterUtil) SendTweetResponse(e *irc.Event, q string, tid string) {
@@ -59,6 +68,8 @@ func (*TwitterUtil) SendTweetResponse(e *irc.Event, q string, tid string) {
 	} else {
 		e.Connection.Privmsgf(e.Arguments[0], "[%s] Tweet send failed: %s", e.Nick, ter)
 	}
+
+	api.Close()
 }
 
 func (*TwitterUtil) Follow(e *irc.Event, usr string) {
@@ -72,12 +83,29 @@ func (*TwitterUtil) Follow(e *irc.Event, usr string) {
 	} else {
 		e.Connection.Privmsgf(e.Arguments[0], "[%s] Tweet send failed: %s", e.Nick, ter)
 	}
+
+	api.Close()
+}
+
+func (*TwitterUtil) SendDM(e *irc.Event, usr, q string) {
+	anaconda.SetConsumerKey(opt.TwitterAppKey)
+	anaconda.SetConsumerSecret(opt.TwitterAppSecret)
+	api := anaconda.NewTwitterApi(opt.TwitterAuthKey, opt.TwitterAuthSecret)
+
+	dm, ter := api.PostDMToScreenName(usr, q)
+	if ter == nil {
+		e.Connection.Privmsgf(e.Arguments[0], "[%s] DM sent to @%s", e.Nick, dm.RecipientScreenName)
+	} else {
+		e.Connection.Privmsgf(e.Arguments[0], "[%s] DM send failed: %s", e.Nick, ter)
+	}
+	api.Close()
 }
 
 func (*TwitterUtil) ListenToUserStream(i *irc.Connection) {
 	anaconda.SetConsumerKey(opt.TwitterAppKey)
 	anaconda.SetConsumerSecret(opt.TwitterAppSecret)
 	api := anaconda.NewTwitterApi(opt.TwitterAuthKey, opt.TwitterAuthSecret)
+
 	stream := api.UserStream(url.Values{})
 	if stream != nil {
 		i.Join("#twitter")
@@ -130,4 +158,6 @@ func (*TwitterUtil) ListenToUserStream(i *irc.Connection) {
 			}
 		}
 	}
+
+	api.Close()
 }

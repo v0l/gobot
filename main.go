@@ -74,9 +74,13 @@ func OnPrivMsg(e *irc.Event) {
 				e.Connection.Privmsgf(args[0], "!ud (!w) <word>\t- Looks words up on urban dictionary")
 				e.Connection.Privmsgf(args[0], "!s <thing>\t- Does a quick Google")
 				e.Connection.Privmsgf(args[0], "!js <code> \t- Runs some JS code")
-				e.Connection.Privmsgf(args[0], "!tfollow <handle> \t- Follows somebody on twitter")
-				e.Connection.Privmsgf(args[0], "!tweet (!t) <msg> \t- Sends a tweet!")
-				e.Connection.Privmsgf(args[0], "!tweetreply (!tr) <id> <msg> \t- Sends a reply to a tweet")
+				e.Connection.Privmsgf(args[0], "!thelp \t- Gets twitter command list")
+				break
+			}
+		case "!thelp":
+			{
+				twu := new(TwitterUtil)
+				twu.GetHelp(e)
 				break
 			}
 		case "!ping":
@@ -163,27 +167,36 @@ func OnPrivMsg(e *irc.Event) {
 				jsu.RunJS(e)
 				break
 			}
-		case "!tfollow":
+		case "!tf":
 			{
 				twu := new(TwitterUtil)
 				twu.Follow(e, cmd[1])
 				break
 			}
-		case "!tweet", "!t":
+		case "!t":
 			{
-				q := strings.TrimSpace(strings.Replace(strings.Replace(args[1], "!tweet ", ":: ", -1), "!t ", ":: ", -1))
+				q := strings.TrimSpace(strings.Replace(args[1], "!t ", ":: ", -1))
 
 				twu := new(TwitterUtil)
 				twu.SendTweet(e, q)
 				break
 			}
-		case "!tweetreply", "!tr":
+		case "!tr":
 			{
 				tid := cmd[1]
-				q := strings.TrimSpace(strings.Replace(strings.Replace(args[1], "!tweetreply "+tid, "::", -1), "!tr "+tid, "::", -1))
+				q := strings.TrimSpace(strings.Replace(args[1], "!tr "+tid, "::", -1))
 
 				twu := new(TwitterUtil)
 				twu.SendTweetResponse(e, q, tid)
+				break
+			}
+		case "!tdm":
+			{
+				usr := cmd[1]
+				q := strings.TrimSpace(strings.Replace(args[1], "!tdm "+usr, "", -1))
+
+				twu := new(TwitterUtil)
+				twu.SendDM(e, usr, q)
 				break
 			}
 		}
