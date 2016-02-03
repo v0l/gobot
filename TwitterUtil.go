@@ -35,6 +35,8 @@ func (t *TwitterUtil) SetLocation(e *irc.Event, txt string) {
 	if txt == "" {
 		t.Location = TweetLocation{}
 		t.LocationMode = 0
+
+		e.Connection.Privmsgf(e.Arguments[0], "[%s] Tweet location set to: random", e.Nick)
 	} else {
 		t.LocationMode = 1
 		anaconda.SetConsumerKey(opt.TwitterAppKey)

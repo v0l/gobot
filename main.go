@@ -270,8 +270,7 @@ func main() {
 
 	go func() {
 		<-irc_ready
-		i.Join("#twittertest")
-		//twu.ListenToUserStream(i)
+		twu.ListenToUserStream(i)
 	}()
 
 	i.Loop()
