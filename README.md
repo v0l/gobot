@@ -1,0 +1,2 @@
+# gobot
+Golang IRC bot
