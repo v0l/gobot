@@ -162,7 +162,9 @@ func (*TwitterUtil) ListenToUserStream(i *irc.Connection) {
 			case anaconda.DirectMessage:
 				{
 					dm_txt := strings.Replace(st.Text, "\n", "", -1)
-					i.Privmsgf("#twitter", "DM from @%s [%s]: %s", st.SenderScreenName, st.IdStr, dm_txt)
+					if st.SenderScreenName != opt.TwitterHandle {
+						i.Privmsgf("#twitter", "DM from @%s [%s]: %s", st.SenderScreenName, st.IdStr, dm_txt)
+					}
 					break
 				}
 			case anaconda.EventTweet:
