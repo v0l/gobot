@@ -51,8 +51,8 @@ func (t *TwitterUtil) SetLocation(e *irc.Event, txt string) {
 			t.Location.result = pl
 			t.Location.err = nil
 
-			t.Location.lat = fmt.Sprintf("%.4f", pl.Result.Places[0].Centroid[0])
-			t.Location.long = fmt.Sprintf("%.4f", pl.Result.Places[0].Centroid[1])
+			t.Location.lat = fmt.Sprintf("%.4f", pl.Result.Places[0].Centroid[1])
+			t.Location.long = fmt.Sprintf("%.4f", pl.Result.Places[0].Centroid[0])
 
 			e.Connection.Privmsgf(e.Arguments[0], "[%s] Tweet location set to: %s (https://www.google.com/maps?q=%s,%s)", e.Nick, pl.Result.Places[0].FullName, t.Location.long, t.Location.lat)
 		} else {
