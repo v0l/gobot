@@ -67,6 +67,10 @@ type YtData struct {
 	} `json:"items"`
 }
 
+const (
+	USERAGENT string = "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.97 Safari/537.36"
+)
+
 type HttpUtils struct {
 }
 
@@ -171,7 +175,7 @@ func (*HttpUtils) GetHttpTitle(e *irc.Event) {
 func (*HttpUtils) SearchGoogle(e *irc.Event, q string) {
 	client := &http.Client{}
 	req, _ := http.NewRequest("GET", fmt.Sprintf("https://www.google.ie/search?q=%s&gws_rd=ssl", url.QueryEscape(q)), nil)
-	req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/43.0.2357.81 Safari/537.36")
+	req.Header.Set("User-Agent", USERAGENT)
 	doc, de := client.Do(req)
 	if de == nil {
 		defer doc.Body.Close()
@@ -257,7 +261,7 @@ func (*HttpUtils) SearchUrbanDictionary(e *irc.Event, q string) {
 func (*HttpUtils) GetFunFact(e *irc.Event) {
 	client := &http.Client{}
 	req, _ := http.NewRequest("GET", "https://www.google.ie/search?q=im+feeling+curious&gws_rd=ssl", nil)
-	req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/43.0.2357.81 Safari/537.36")
+	req.Header.Set("User-Agent", USERAGENT)
 	doc, de := client.Do(req)
 	if de == nil {
 		defer doc.Body.Close()
