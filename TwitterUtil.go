@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math/rand"
 	"net/url"
+	"regexp"
 	"strings"
 	"time"
 
@@ -29,6 +30,36 @@ func (*TwitterUtil) GetHelp(e *irc.Event) {
 	e.Connection.Privmsgf(e.Arguments[0], "!tf <handle> \t- Follow somebody on twatter")
 	e.Connection.Privmsgf(e.Arguments[0], "!tdm <handle> <msg>\t- Send a DM to somebody")
 	e.Connection.Privmsgf(e.Arguments[0], "!tloc <location/auto>\t- Sets tweet location")
+}
+
+func (t *TwitterUtil) GetNewTweetMedia(txt string) (anaconda.Media, string) {
+	rx, _ := regexp.Compile("(http|https):\\/\\/([\\w.\\-\\/\\%#]+)")
+	rxm := rx.FindAllStringSubmatch(txt, -1)
+	if len(rxm) > 0 {
+		for i := 0; i < len(rxm); i++ {
+			rxm_i := rxm[i]
+			ml := rxm_i[0]
+
+			ht := new(HttpUtils)
+			mt := ht.GetContentType(ml)
+
+			if strings.Index(mt, "image") >= 0 {
+				anaconda.SetConsumerKey(opt.TwitterAppKey)
+				anaconda.SetConsumerSecret(opt.TwitterAppSecret)
+				api := anaconda.NewTwitterApi(opt.TwitterAuthKey, opt.TwitterAuthSecret)
+
+				bimg := ht.GetRemoteImageBase64(ml)
+				med, mer := api.UploadMedia(bimg)
+				api.Close()
+				if mer == nil {
+					return med, strings.Replace(txt, ml, "", -1)
+				} else {
+					fmt.Println(mer)
+				}
+			}
+		}
+	}
+	return anaconda.Media{}, txt
 }
 
 func (t *TwitterUtil) SetLocation(e *irc.Event, txt string) {
@@ -99,7 +130,11 @@ func (t *TwitterUtil) SendTweet(e *irc.Event, q string) {
 		vals.Add("place_id", pl.result.Result.Places[0].ID)
 	}
 
-	tw, ter := api.PostTweet(q, vals)
+	tm, twe := t.GetNewTweetMedia(q)
+	if tm.MediaID != 0 {
+		vals.Add("media_ids", tm.MediaIDString)
+	}
+	tw, ter := api.PostTweet(twe, vals)
 	if ter == nil {
 		e.Connection.Privmsgf(e.Arguments[0], "[%s] Tweet sent [ https://twitter.com/%s/status/%s ]", e.Nick, tw.User.ScreenName, tw.IdStr)
 	} else {
@@ -125,7 +160,11 @@ func (t *TwitterUtil) SendTweetResponse(e *irc.Event, q string, tid string) {
 
 	vals.Add("in_reply_to_status_id", tid)
 
-	tw, ter := api.PostTweet(q, vals)
+	tm, twe := t.GetNewTweetMedia(q)
+	if tm.MediaID != 0 {
+		vals.Add("media_ids", tm.MediaIDString)
+	}
+	tw, ter := api.PostTweet(twe, vals)
 	if ter == nil {
 		e.Connection.Privmsgf(e.Arguments[0], "[%s] Tweet sent [ https://twitter.com/%s/status/%s ]", e.Nick, tw.User.ScreenName, tw.IdStr)
 	} else {

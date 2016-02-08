@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -176,6 +177,8 @@ func (*HttpUtils) SearchGoogle(e *irc.Event, q string) {
 	client := &http.Client{}
 	req, _ := http.NewRequest("GET", fmt.Sprintf("https://www.google.ie/search?q=%s&gws_rd=ssl", url.QueryEscape(q)), nil)
 	req.Header.Set("User-Agent", USERAGENT)
+	req.Header.Set("dnt", "1")
+
 	doc, de := client.Do(req)
 	if de == nil {
 		defer doc.Body.Close()
@@ -289,4 +292,34 @@ func (*HttpUtils) GetFunFact(e *irc.Event) {
 		}
 		f(z)
 	}
+}
+
+func (*HttpUtils) GetContentType(url string) string {
+	client := &http.Client{}
+	req, _ := http.NewRequest("HEAD", url, nil)
+	req.Header.Set("User-Agent", USERAGENT)
+	doc, de := client.Do(req)
+	if de == nil {
+		defer doc.Body.Close()
+		return doc.Header.Get("Content-Type")
+	}
+
+	return ""
+}
+
+func (*HttpUtils) GetRemoteImageBase64(url string) string {
+	client := &http.Client{}
+	req, _ := http.NewRequest("GET", url, nil)
+	req.Header.Set("User-Agent", USERAGENT)
+	doc, de := client.Do(req)
+	if de == nil {
+		defer doc.Body.Close()
+
+		img, re := ioutil.ReadAll(doc.Body)
+		if re == nil {
+			return base64.StdEncoding.EncodeToString(img)
+		}
+	}
+
+	return ""
 }
