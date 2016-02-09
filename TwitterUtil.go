@@ -232,6 +232,7 @@ func (*TwitterUtil) ListenToUserStream(i *irc.Connection) {
 					if hasMention {
 						i.Privmsgf("#twitter", "Tweet from @%s [%s]: %s", st.User.ScreenName, st.IdStr, tweet_txt)
 					} else {
+						nc.Chat(tweet_txt)
 						i.Privmsgf("#twitterspam", "@%s [%s]: %s", st.User.ScreenName, st.IdStr, tweet_txt)
 					}
 					break

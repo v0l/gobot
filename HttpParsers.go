@@ -323,3 +323,20 @@ func (*HttpUtils) GetRemoteImageBase64(url string) string {
 
 	return ""
 }
+
+func (*HttpUtils) GetBodyText(url string) string {
+	client := &http.Client{}
+	req, _ := http.NewRequest("GET", url, nil)
+	req.Header.Set("User-Agent", USERAGENT)
+	doc, de := client.Do(req)
+	if de == nil {
+		defer doc.Body.Close()
+
+		img, re := ioutil.ReadAll(doc.Body)
+		if re == nil {
+			return string(img)
+		}
+	}
+
+	return ""
+}

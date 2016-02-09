@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"math/rand"
 	"strings"
 
 	"github.com/thoj/go-ircevent"
@@ -37,6 +38,7 @@ type Options struct {
 
 var opt = Options{}
 var twu = TwitterUtil{0, TweetLocation{}}
+var nc = NChat{}
 
 func OnJoin(e *irc.Event) {
 	if e.Nick != opt.Nick {
@@ -51,6 +53,10 @@ func Hash(s string) string {
 }
 
 func OnPrivMsg(e *irc.Event) {
+	if strings.Index(e.Nick, "T10") >= 0 {
+		return
+	}
+
 	msg := e.Message()
 	args := e.Arguments
 	l := e.Connection.Log
@@ -76,6 +82,20 @@ func OnPrivMsg(e *irc.Event) {
 				e.Connection.Privmsgf(args[0], "!s <thing>\t- Does a quick Google")
 				e.Connection.Privmsgf(args[0], "!js <code> \t- Runs some JS code")
 				e.Connection.Privmsgf(args[0], "!thelp \t- Gets twitter command list")
+				break
+			}
+		case "!read":
+			{
+				q := strings.TrimSpace(strings.Replace(args[1], "!read ", "", -1))
+				ht := new(HttpUtils)
+				doc := ht.GetBodyText(q)
+				doc = strings.Replace(doc, "\n", "", -1)
+				dcs := strings.Split(doc, ".")
+				for _, d := range dcs {
+					nc.Chat(d)
+				}
+
+				e.Connection.Privmsgf(args[0], "Done! irsmrt")
 				break
 			}
 		case "!thelp":
@@ -214,6 +234,17 @@ func OnPrivMsg(e *irc.Event) {
 	} else {
 		utl := new(HttpUtils)
 		utl.GetHttpTitle(e)
+
+		var mn string
+		if strings.Contains(msg, " ") {
+			mns := strings.Split(msg, " ")
+			mn = mns[rand.Intn(len(mns))]
+		} else {
+			mn = msg
+		}
+
+		e.Connection.Privmsgf(args[0], nc.Next(mn))
+		nc.Chat(msg)
 	}
 }
 
@@ -239,6 +270,8 @@ func main() {
 		jout, _ := json.Marshal(opt)
 		ioutil.WriteFile("options.conf", jout, 0644)
 	}
+
+	nc.Init(3)
 
 	i := irc.IRC(opt.Nick, opt.Nick)
 	i.Debug = true
