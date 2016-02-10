@@ -78,7 +78,7 @@ func (t *TwitterUtil) SetLocation(e *irc.Event, txt string) {
 		vals.Add("query", url.QueryEscape(txt))
 
 		pl, ple := api.GeoSearch(vals)
-		if ple == nil {
+		if ple == nil && len(pl.Result.Places) > 0 && len(pl.Result.Places[0].Centroid) == 2 {
 			t.Location.result = pl
 			t.Location.err = nil
 
