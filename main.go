@@ -235,7 +235,7 @@ func OnPrivMsg(e *irc.Event) {
 		utl := new(HttpUtils)
 		utl.GetHttpTitle(e)
 
-		var mn string
+		/*var mn string
 		if strings.Contains(msg, " ") {
 			mns := strings.Split(msg, " ")
 			mn = mns[rand.Intn(len(mns))]
@@ -244,7 +244,7 @@ func OnPrivMsg(e *irc.Event) {
 		}
 
 		e.Connection.Privmsgf(args[0], nc.Next(mn))
-		nc.Chat(msg)
+		nc.Chat(msg)*/
 	}
 }
 
