@@ -78,32 +78,26 @@ type HttpUtils struct {
 func (*HttpUtils) ParseYoutubeLink(e *irc.Event) {
 	msg := e.Message()
 
-	var v string
-	if strings.Index(msg, "?v=") > 0 {
-		vc := strings.Split(msg, "?")[1]
-		if strings.Index(vc, "&") >= 0 {
-			vcn := strings.Split(vc, "&")
-			for _, vn := range vcn {
-				if strings.Index(vn, "v=") >= 0 {
-					v = strings.Split(vn, "=")[1]
-					break
+	ytr,_ := regexp.Compile("\\?v=(\\w+)")
+	ytm := ytr.FindAllStringSubmatch(msg, -1)
+	if len(ytm) > 0 {
+		for _, y := range(ytm){
+			//Load video data
+			apiKey := opt.YoutubeApiKey
+			doc, de := http.Get(fmt.Sprintf("https://www.googleapis.com/youtube/v3/videos?part=snippet&id=%s&key=%s", y[1], apiKey))
+			if de == nil {
+				defer doc.Body.Close()
+
+				var gd YtData
+				body, _ := ioutil.ReadAll(doc.Body)
+				jer := json.Unmarshal(body, &gd)
+				if jer == nil {
+					if len(gd.Items) > 0 {
+						e.Connection.Privmsgf(e.Arguments[0], "\u25B2 %s \u25B2", gd.Items[0].Snippet.Title)
+					}else {
+						e.Connection.Privmsgf(e.Arguments[0], "Nothing found for %s", y[1])
+					}
 				}
-			}
-		} else {
-			v = strings.Split(vc, "=")[1]
-		}
-
-		//Load video data
-		apiKey := opt.YoutubeApiKey
-		doc, de := http.Get(fmt.Sprintf("https://www.googleapis.com/youtube/v3/videos?part=snippet&id=%s&key=%s", v, apiKey))
-		if de == nil {
-			defer doc.Body.Close()
-
-			var gd YtData
-			body, _ := ioutil.ReadAll(doc.Body)
-			jer := json.Unmarshal(body, &gd)
-			if jer == nil {
-				e.Connection.Privmsgf(e.Arguments[0], "\u25B2 %s \u25B2", gd.Items[0].Snippet.Title)
 			}
 		}
 	} else {

@@ -263,6 +263,7 @@ func main() {
 		opt = Options{
 			Server:       "irc.harkin.me:6667",
 			Nick:         "BOT-N",
+			useTLS: 	  true,
 			DefaultChans: []string{"#lobby"},
 			OperDetails:  []string{ /* USERNAME, PASSWORD*/ },
 		}
