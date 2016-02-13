@@ -33,6 +33,7 @@ type Options struct {
 	//Tropo
 	TropoToken    string
 	TropoTokenMsg string
+	CallDir       string
 }
 
 var opt = Options{}

@@ -30,7 +30,7 @@ func (*Tropo) SipCall(e *irc.Event, pn string, txt string) {
 		je := xml.Unmarshal(body, &trsp)
 		if je == nil {
 			e.Connection.Privmsgf(e.Arguments[0], "[%s]: SIP call to %s started!", e.Nick, pn)
-			e.Connection.Privmsgf(e.Arguments[0], "[%s]: A recording of this call will be available here: http://irc.harkin.me:6660/rec/%s.mp3", e.Nick, strings.Replace(trsp.ID, "\n", "", -1))
+			e.Connection.Privmsgf(e.Arguments[0], "[%s]: A recording of this call will be available here: %s/%s.mp3", e.Nick, opt.CallDir, strings.Replace(trsp.ID, "\n", "", -1))
 		} else {
 			e.Connection.Privmsgf(e.Arguments[0], "[%s]: Call to %s started! (Failed to parse response: %s)", e.Nick, pn, je)
 		}
@@ -46,7 +46,7 @@ func (*Tropo) Call(e *irc.Event, pn string, txt string) {
 		je := xml.Unmarshal(body, &trsp)
 		if je == nil {
 			e.Connection.Privmsgf(e.Arguments[0], "[%s]: Call to %s started!", e.Nick, pn)
-			e.Connection.Privmsgf(e.Arguments[0], "[%s]: A recording of this call will be available here: http://irc.harkin.me:6660/rec/%s.mp3", e.Nick, strings.Replace(trsp.ID, "\n", "", -1))
+			e.Connection.Privmsgf(e.Arguments[0], "[%s]: A recording of this call will be available here: %s/%s.mp3", e.Nick, opt.CallDir, strings.Replace(trsp.ID, "\n", "", -1))
 		} else {
 			e.Connection.Privmsgf(e.Arguments[0], "[%s]: Call to %s started! (Failed to parse response: %s)", e.Nick, pn, je)
 		}
