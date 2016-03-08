@@ -194,7 +194,7 @@ func OnPrivMsg(e *irc.Event) {
 			}
 		case "!t":
 			{
-				q := strings.TrimSpace(strings.Replace(args[1], "!t ", ":: ", -1))
+				q := strings.TrimSpace(strings.Replace(args[1], "!t ", "", -1))
 
 				twu.SendTweet(e, q)
 				break
@@ -202,7 +202,7 @@ func OnPrivMsg(e *irc.Event) {
 		case "!tr":
 			{
 				tid := cmd[1]
-				q := strings.TrimSpace(strings.Replace(args[1], "!tr "+tid, "::", -1))
+				q := strings.TrimSpace(strings.Replace(args[1], "!tr "+tid, "", -1))
 
 				twu.SendTweetResponse(e, q, tid)
 				break
@@ -268,7 +268,7 @@ func main() {
 		opt = Options{
 			Server:       "irc.harkin.me:6667",
 			Nick:         "BOT-N",
-			useTLS: 	  true,
+			useTLS:       true,
 			DefaultChans: []string{"#lobby"},
 			OperDetails:  []string{ /* USERNAME, PASSWORD*/ },
 		}
