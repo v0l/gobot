@@ -215,6 +215,11 @@ func OnPrivMsg(e *irc.Event) {
 				twu.SendDM(e, usr, q)
 				break
 			}
+		case "!tdel":
+			{
+				twu.DeleteTweet(e, cmd[1])
+				break
+			}
 		case "!tloc":
 			{
 				q := strings.TrimSpace(strings.Replace(args[1], "!tloc ", "", -1))

@@ -5,6 +5,7 @@ import (
 	"math/rand"
 	"net/url"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -30,6 +31,7 @@ func (*TwitterUtil) GetHelp(e *irc.Event) {
 	e.Connection.Privmsgf(e.Arguments[0], "!tf <handle> \t- Follow somebody on twatter")
 	e.Connection.Privmsgf(e.Arguments[0], "!tdm <handle> <msg>\t- Send a DM to somebody")
 	e.Connection.Privmsgf(e.Arguments[0], "!tloc <location/auto>\t- Sets tweet location")
+	e.Connection.Privmsgf(e.Arguments[0], "!tdel <id>\t- Deletes a tweet")
 }
 
 func (t *TwitterUtil) GetNewTweetMedia(txt string) (anaconda.Media, string) {
@@ -136,7 +138,7 @@ func (t *TwitterUtil) SendTweet(e *irc.Event, q string) {
 	}
 	tw, ter := api.PostTweet(twe, vals)
 	if ter == nil {
-		e.Connection.Privmsgf(e.Arguments[0], "[%s] Tweet sent [ https://twitter.com/%s/status/%s ]", e.Nick, tw.User.ScreenName, tw.IdStr)
+		e.Connection.Privmsgf(e.Arguments[0], "[%s] Tweet sent [%s][ https://twitter.com/%s/status/%s ]", e.Nick, tw.IdStr, tw.User.ScreenName, tw.IdStr)
 	} else {
 		e.Connection.Privmsgf(e.Arguments[0], "[%s] Tweet send failed: %s", e.Nick, ter)
 	}
@@ -200,6 +202,26 @@ func (*TwitterUtil) SendDM(e *irc.Event, usr, q string) {
 	} else {
 		e.Connection.Privmsgf(e.Arguments[0], "[%s] DM send failed: %s", e.Nick, ter)
 	}
+	api.Close()
+}
+
+func (*TwitterUtil) DeleteTweet(e *irc.Event, tid string) {
+	anaconda.SetConsumerKey(opt.TwitterAppKey)
+	anaconda.SetConsumerSecret(opt.TwitterAppSecret)
+	api := anaconda.NewTwitterApi(opt.TwitterAuthKey, opt.TwitterAuthSecret)
+
+	id, ier := strconv.ParseInt(tid, 10, 64)
+	if ier == nil {
+		_, er := api.DeleteTweet(id, false)
+		if er == nil {
+			e.Connection.Privmsgf(e.Arguments[0], "[%s] Tweet deleted", e.Nick)
+		} else {
+			e.Connection.Privmsgf(e.Arguments[0], "[%s] Tweet delete failed: %s", e.Nick, er)
+		}
+	} else {
+		e.Connection.Privmsgf(e.Arguments[0], "[%s] Tweet id is invalid int64", e.Nick)
+	}
+
 	api.Close()
 }
 
