@@ -15,7 +15,7 @@ import (
 	"github.com/thoj/go-ircevent"
 )
 
-type AuthToken struct {
+type TwitterAuthToken struct {
 	OauthToken       string `json:"oauth_token"`
 	OauthTokenSecret string `json:"oauth_token_secret"`
 	UserID           string `json:"user_id"`
@@ -48,7 +48,7 @@ func (*TwitterUtil) GetHelp(e *irc.Event) {
 func (*TwitterUtil) ListTokens(e *irc.Event) {
 	files, err := ioutil.ReadDir(opt.TwitterTokenDir)
 	if err == nil {
-		var tk = AuthToken{}
+		var tk = TwitterAuthToken{}
 
 		if len(files) > 0 {
 			e.Connection.Privmsgf(e.Arguments[0], "Twitter account tokens:")
@@ -59,7 +59,7 @@ func (*TwitterUtil) ListTokens(e *irc.Event) {
 					if je != nil {
 						e.Connection.Privmsgf(e.Arguments[0], " - %s (%s)", tk.ScreenName, file.Name())
 					} else {
-						e.Connection.Privmsgf(e.Arguments[0], "Failed to parse token file %s", file.Name())
+						e.Connection.Privmsgf(e.Arguments[0], "Failed to parse token file %s (%s)", file.Name(), je)
 					}
 				} else {
 					e.Connection.Privmsgf(e.Arguments[0], "[%s] Couldn't open token file (%s)", e.Nick, ofe)
@@ -74,7 +74,7 @@ func (*TwitterUtil) ListTokens(e *irc.Event) {
 }
 
 func (*TwitterUtil) LoadToken(e *irc.Event, name string) {
-	tk := AuthToken{}
+	var tk = TwitterAuthToken{}
 	of, ofe := ioutil.ReadFile(opt.TwitterTokenDir + "/" + name)
 	if ofe == nil {
 		je := json.Unmarshal(of, &tk)

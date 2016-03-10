@@ -324,21 +324,31 @@ func main() {
 		<-irc_ready
 		files, err := ioutil.ReadDir(opt.TwitterTokenDir)
 		if err == nil {
-			tk := AuthToken{}
+			var tk = TwitterAuthToken{}
 
-			for _, file := range files {
-				of, ofe := ioutil.ReadFile(opt.TwitterTokenDir + "/" + file.Name())
-				if ofe == nil {
-					je := json.Unmarshal(of, &tk)
-					if je != nil {
-						go func() {
-							twu.ListenToUserStream(i, tk.OauthToken, tk.OauthTokenSecret)
-						}()
+			if len(files) > 0 {
+				for _, file := range files {
+					of, ofe := ioutil.ReadFile(opt.TwitterTokenDir + "/" + file.Name())
+					if ofe == nil {
+						je := json.Unmarshal(of, &tk)
+						if je != nil {
+							fmt.Printf("Starting user stream %s", tk.ScreenName)
+							go func() {
+								twu.ListenToUserStream(i, tk.OauthToken, tk.OauthTokenSecret)
+							}()
+						} else {
+							fmt.Printf("Failed to parse token file %s (%s)", file.Name(), je)
+						}
+					} else {
+						fmt.Printf("Couldn't open token file (%s)", ofe)
 					}
 				}
+			} else {
+				fmt.Printf("No twitter tokens found in %s", opt.TwitterTokenDir)
 			}
+		} else {
+			fmt.Printf("Couldn't open token dir (%s)", err)
 		}
-
 	}()
 
 	i.Loop()
