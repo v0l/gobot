@@ -7,8 +7,11 @@ import (
 )
 
 type RemoteIrc struct {
-	main *irc.Connection
-	i    *irc.Connection
+	main    *irc.Connection
+	i       *irc.Connection
+	server  string
+	nick    string
+	channel string
 }
 
 func (r *RemoteIrc) OnPrivMsg(e *irc.Event) {
@@ -16,6 +19,10 @@ func (r *RemoteIrc) OnPrivMsg(e *irc.Event) {
 }
 
 func (r *RemoteIrc) Run(server, nick, ch string, t bool) {
+	r.server = server
+	r.nick = nick
+	r.channel = ch
+
 	r.i = irc.IRC(nick, nick)
 	r.i.UseTLS = t
 	r.i.TLSConfig = &tls.Config{InsecureSkipVerify: true}
@@ -27,6 +34,8 @@ func (r *RemoteIrc) Run(server, nick, ch string, t bool) {
 		})
 		r.i.AddCallback("PRIVMSG", r.OnPrivMsg)
 	}
+
+	r.i.Loop()
 }
 
 func (r *RemoteIrc) SendPrivmsg(ch, msg string) {

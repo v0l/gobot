@@ -107,18 +107,21 @@ func OnPrivMsg(e *irc.Event) {
 			{
 				if len(cmd) > 4 {
 					nc := RemoteIrc{}
-					nc.main = e.Connection
-					ncs := false
-					if strings.ToLower(cmd[4]) == "true" {
-						ncs = true
-					}
-					nc.Run(cmd[1], cmd[2], cmd[3], ncs)
+
+					go func() {
+						nc.main = e.Connection
+						ncs := false
+						if strings.ToLower(cmd[4]) == "true" {
+							ncs = true
+						}
+						nc.Run(cmd[1], cmd[2], cmd[3], ncs)
+					}()
 
 					rc = append(rc, nc)
 				} else {
 					e.Connection.Privmsgf(args[0], "Remote connections:")
 					for k, v := range rc {
-						e.Connection.Privmsgf(args[0], "%v: %s", k, v)
+						e.Connection.Privmsgf(args[0], "%v: %s %s (%s)", k, v.server, v.channel, v.nick)
 					}
 				}
 				break
