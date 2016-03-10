@@ -2,6 +2,7 @@ package main
 
 import (
 	"crypto/tls"
+	"strings"
 
 	"github.com/thoj/go-ircevent"
 )
@@ -15,7 +16,11 @@ type RemoteIrc struct {
 }
 
 func (r *RemoteIrc) OnPrivMsg(e *irc.Event) {
-	r.main.Privmsgf("#lobby", "[%s][%s] %s: %s", r.server, r.channel, e.Nick, e.Message())
+	if strings.Index(e.Host, "@") > 0 {
+		r.main.Privmsgf("#lobby", "[%s][%s] @%s: %s", r.server, r.channel, e.Nick, e.Message())
+	} else {
+		r.main.Privmsgf("#lobby", "[%s][%s] %s: %s", r.server, r.channel, e.Nick, e.Message())
+	}
 }
 
 func (r *RemoteIrc) Run(server, nick, ch string, t bool) bool {

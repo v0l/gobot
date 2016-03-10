@@ -133,12 +133,14 @@ func OnPrivMsg(e *irc.Event) {
 					srv, ser := strconv.Atoi(cmd[1])
 					if ser == nil {
 						if srv < len(rc) {
-							rc[srv].Stop()
+							tc := rc[srv]
 							if len(rc) == 1 {
 								rc = rc[:0]
 							} else {
 								rc = append(rc[:srv], rc[srv+1:]...)
 							}
+
+							defer tc.Stop()
 						}
 					}
 				}
