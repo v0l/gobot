@@ -47,7 +47,9 @@ func (r *RemoteIrc) SendPrivmsg(ch, msg string) {
 
 func (r *RemoteIrc) Stop() {
 	if r.i != nil {
-		r.i.Quit()
-		r.i.Disconnect()
+		if r.i.Connected() {
+			r.i.Quit()
+			r.i.Disconnect()
+		}
 	}
 }
