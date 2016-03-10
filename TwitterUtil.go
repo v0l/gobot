@@ -48,7 +48,7 @@ func (*TwitterUtil) GetHelp(e *irc.Event) {
 func (*TwitterUtil) ListTokens(e *irc.Event) {
 	files, err := ioutil.ReadDir(opt.TwitterTokenDir)
 	if err == nil {
-		tk := AuthToken{}
+		var tk = AuthToken{}
 
 		if len(files) > 0 {
 			e.Connection.Privmsgf(e.Arguments[0], "Twitter account tokens:")
@@ -58,6 +58,8 @@ func (*TwitterUtil) ListTokens(e *irc.Event) {
 					je := json.Unmarshal(of, &tk)
 					if je != nil {
 						e.Connection.Privmsgf(e.Arguments[0], " - %s (%s)", tk.ScreenName, file.Name())
+					} else {
+						e.Connection.Privmsgf(e.Arguments[0], "Failed to parse token file %s", file.Name())
 					}
 				} else {
 					e.Connection.Privmsgf(e.Arguments[0], "[%s] Couldn't open token file (%s)", e.Nick, ofe)
