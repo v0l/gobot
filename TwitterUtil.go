@@ -1,7 +1,9 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"math/rand"
 	"net/url"
 	"regexp"
@@ -12,6 +14,14 @@ import (
 	"github.com/ChimeraCoder/anaconda"
 	"github.com/thoj/go-ircevent"
 )
+
+type AuthToken struct {
+	OauthToken       string `json:"oauth_token"`
+	OauthTokenSecret string `json:"oauth_token_secret"`
+	UserID           string `json:"user_id"`
+	ScreenName       string `json:"screen_name"`
+	XAuthExpires     string `json:"x_auth_expires"`
+}
 
 type TweetLocation struct {
 	err    error
@@ -32,6 +42,44 @@ func (*TwitterUtil) GetHelp(e *irc.Event) {
 	e.Connection.Privmsgf(e.Arguments[0], "!tdm <handle> <msg>\t- Send a DM to somebody")
 	e.Connection.Privmsgf(e.Arguments[0], "!tloc <location/auto>\t- Sets tweet location")
 	e.Connection.Privmsgf(e.Arguments[0], "!tdel <id>\t- Deletes a tweet")
+	e.Connection.Privmsgf(e.Arguments[0], "!tac <filename>\t- Sets twitter account")
+}
+
+func (*TwitterUtil) ListTokens(e *irc.Event) {
+	files, err := ioutil.ReadDir(opt.TwitterTokenDir)
+	if err == nil {
+		e.Connection.Privmsgf(e.Arguments[0], "Twitter account tokens:")
+		tk := AuthToken{}
+
+		for _, file := range files {
+			of, ofe := ioutil.ReadFile(opt.TwitterTokenDir + "/" + file.Name())
+			if ofe == nil {
+				je := json.Unmarshal(of, &tk)
+				if je != nil {
+					e.Connection.Privmsgf(e.Arguments[0], " - %s (%s)", tk.ScreenName, file.Name())
+				}
+			}
+		}
+	}
+}
+
+func (*TwitterUtil) LoadToken(e *irc.Event, name string) {
+	tk := AuthToken{}
+	of, ofe := ioutil.ReadFile(opt.TwitterTokenDir + "/" + name)
+	if ofe == nil {
+		je := json.Unmarshal(of, &tk)
+		if je != nil {
+			opt.TwitterAuthKey = tk.OauthToken
+			opt.TwitterAuthSecret = tk.OauthTokenSecret
+			opt.TwitterHandle = tk.ScreenName
+
+			e.Connection.Privmsgf(e.Arguments[0], "[%s] Twitter account set to: %s", e.Nick, tk.ScreenName)
+		} else {
+			e.Connection.Privmsgf(e.Arguments[0], "[%s] Error parsing json file: %s", e.Nick, name)
+		}
+	} else {
+		e.Connection.Privmsgf(e.Arguments[0], "[%s] Error reading json file: %s", e.Nick, name)
+	}
 }
 
 func (t *TwitterUtil) GetNewTweetMedia(txt string) (anaconda.Media, string) {
@@ -225,10 +273,10 @@ func (*TwitterUtil) DeleteTweet(e *irc.Event, tid string) {
 	api.Close()
 }
 
-func (*TwitterUtil) ListenToUserStream(i *irc.Connection) {
+func (*TwitterUtil) ListenToUserStream(i *irc.Connection, auth, secret string) {
 	anaconda.SetConsumerKey(opt.TwitterAppKey)
 	anaconda.SetConsumerSecret(opt.TwitterAppSecret)
-	api := anaconda.NewTwitterApi(opt.TwitterAuthKey, opt.TwitterAuthSecret)
+	api := anaconda.NewTwitterApi(auth, secret)
 
 	stream := api.UserStream(url.Values{})
 	if stream != nil {

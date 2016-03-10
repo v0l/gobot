@@ -24,8 +24,11 @@ type Options struct {
 	YoutubeApiKey string
 
 	//Twitter
-	TwitterAppKey     string
-	TwitterAppSecret  string
+	TwitterAppKey    string
+	TwitterAppSecret string
+	TwitterTokenDir  string
+
+	//Temp twitter vars
 	TwitterAuthKey    string
 	TwitterAuthSecret string
 	TwitterHandle     string
@@ -232,6 +235,15 @@ func OnPrivMsg(e *irc.Event) {
 
 				break
 			}
+		case "!tac":
+			{
+				if len(cmd) > 1 {
+					twu.LoadToken(e, cmd[1])
+				} else {
+					twu.ListTokens(e)
+				}
+				break
+			}
 		}
 	} else if strings.Index(msg, "youtube.com/") >= 0 {
 		utl := new(HttpUtils)
@@ -266,11 +278,12 @@ func main() {
 
 		//Set default values
 		opt = Options{
-			Server:       "irc.harkin.me:6667",
-			Nick:         "BOT-N",
-			useTLS:       true,
-			DefaultChans: []string{"#lobby"},
-			OperDetails:  []string{ /* USERNAME, PASSWORD*/ },
+			Server:          "irc.harkin.me:6667",
+			Nick:            "BOT-N",
+			useTLS:          true,
+			DefaultChans:    []string{"#lobby"},
+			OperDetails:     []string{ /* USERNAME, PASSWORD*/ },
+			TwitterTokenDir: ".",
 		}
 
 		jout, _ := json.Marshal(opt)
@@ -309,7 +322,23 @@ func main() {
 
 	go func() {
 		<-irc_ready
-		twu.ListenToUserStream(i)
+		files, err := ioutil.ReadDir(opt.TwitterTokenDir)
+		if err == nil {
+			tk := AuthToken{}
+
+			for _, file := range files {
+				of, ofe := ioutil.ReadFile(opt.TwitterTokenDir + "/" + file.Name())
+				if ofe == nil {
+					je := json.Unmarshal(of, &tk)
+					if je != nil {
+						go func() {
+							twu.ListenToUserStream(i, tk.OauthToken, tk.OauthTokenSecret)
+						}()
+					}
+				}
+			}
+		}
+
 	}()
 
 	i.Loop()
