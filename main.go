@@ -114,9 +114,11 @@ func OnPrivMsg(e *irc.Event) {
 					if strings.ToLower(cmd[4]) == "true" {
 						ncs = true
 					}
-					nc.Run(cmd[1], cmd[2], cmd[3], ncs)
 
-					rc = append(rc, nc)
+					if nc.Run(cmd[1], cmd[2], cmd[3], ncs) {
+						rc = append(rc, nc)
+						e.Connection.Privmsgf(args[0], "[%v] Connected to %s", e.Nick, cmd[1])
+					}
 				} else {
 					e.Connection.Privmsgf(args[0], "Remote connections:")
 					for k, v := range rc {

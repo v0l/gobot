@@ -18,7 +18,7 @@ func (r *RemoteIrc) OnPrivMsg(e *irc.Event) {
 	r.main.Privmsgf("#lobby", "[%s][%s] %s: %s", r.server, r.channel, e.Nick, e.Message())
 }
 
-func (r *RemoteIrc) Run(server, nick, ch string, t bool) {
+func (r *RemoteIrc) Run(server, nick, ch string, t bool) bool {
 	r.server = server
 	r.nick = nick
 	r.channel = ch
@@ -33,7 +33,10 @@ func (r *RemoteIrc) Run(server, nick, ch string, t bool) {
 			e.Connection.Join(ch)
 		})
 		r.i.AddCallback("PRIVMSG", r.OnPrivMsg)
+		return true
 	}
+
+	return false
 }
 
 func (r *RemoteIrc) SendPrivmsg(ch, msg string) {
