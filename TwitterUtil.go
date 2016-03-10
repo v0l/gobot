@@ -184,11 +184,6 @@ func (t *TwitterUtil) SendTweet(e *irc.Event, q string) {
 	anaconda.SetConsumerKey(opt.TwitterAppKey)
 	anaconda.SetConsumerSecret(opt.TwitterAppSecret)
 	api := anaconda.NewTwitterApi(opt.TwitterAuthKey, opt.TwitterAuthSecret)
-	_, ve := api.VerifyCredentials()
-	if ve != nil {
-		e.Connection.Privmsgf(e.Arguments[0], "[%s] Credentials could not be validated (%s)", e.Nick, ve)
-		return
-	}
 
 	vals := url.Values{}
 
@@ -292,10 +287,10 @@ func (*TwitterUtil) DeleteTweet(e *irc.Event, tid string) {
 	api.Close()
 }
 
-func (*TwitterUtil) ListenToUserStream(i *irc.Connection, auth, secret string) {
+func (*TwitterUtil) ListenToUserStream(i *irc.Connection, auth TwitterAuthToken) {
 	anaconda.SetConsumerKey(opt.TwitterAppKey)
 	anaconda.SetConsumerSecret(opt.TwitterAppSecret)
-	api := anaconda.NewTwitterApi(auth, secret)
+	api := anaconda.NewTwitterApi(auth.OauthToken, auth.OauthTokenSecret)
 
 	stream := api.UserStream(url.Values{})
 	if stream != nil {
@@ -311,7 +306,7 @@ func (*TwitterUtil) ListenToUserStream(i *irc.Connection, auth, secret string) {
 					hasMention := false
 					for x := 0; x < len(st.Entities.User_mentions); x++ {
 						ent := st.Entities.User_mentions[x]
-						if ent.Screen_name == opt.TwitterHandle {
+						if ent.Screen_name == auth.ScreenName {
 							hasMention = true
 						}
 					}
@@ -321,7 +316,6 @@ func (*TwitterUtil) ListenToUserStream(i *irc.Connection, auth, secret string) {
 					if hasMention {
 						i.Privmsgf("#twitter", "Tweet from @%s [%s]: %s", st.User.ScreenName, st.IdStr, tweet_txt)
 					} else {
-						nc.Chat(tweet_txt)
 						i.Privmsgf("#twitterspam", "@%s [%s]: %s", st.User.ScreenName, st.IdStr, tweet_txt)
 					}
 					break
@@ -329,7 +323,7 @@ func (*TwitterUtil) ListenToUserStream(i *irc.Connection, auth, secret string) {
 			case anaconda.DirectMessage:
 				{
 					dm_txt := strings.Replace(st.Text, "\n", "", -1)
-					if st.SenderScreenName != opt.TwitterHandle {
+					if st.SenderScreenName != auth.ScreenName {
 						i.Privmsgf("#twitter", "DM from @%s [%s]: %s", st.SenderScreenName, st.IdStr, dm_txt)
 					}
 					break
@@ -337,14 +331,14 @@ func (*TwitterUtil) ListenToUserStream(i *irc.Connection, auth, secret string) {
 			case anaconda.EventTweet:
 				{
 					tweet_txt := strings.Replace(st.TargetObject.Text, "\n", "", -1)
-					if st.Event.Event == "favorite" && st.Source.ScreenName != opt.TwitterHandle {
+					if st.Event.Event == "favorite" && st.Source.ScreenName != auth.ScreenName {
 						i.Privmsgf("#twitter", "Tweet favorited by @%s [%s]: %s", st.Source.ScreenName, tweet_txt)
 					}
 					break
 				}
 			case anaconda.Event:
 				{
-					if st.Event == "follow" && st.Source.ScreenName != opt.TwitterHandle {
+					if st.Event == "follow" && st.Source.ScreenName != auth.ScreenName {
 						i.Privmsgf("#twitter", "@%s is now following you", st.Source.ScreenName)
 					}
 					break

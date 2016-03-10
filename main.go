@@ -41,7 +41,6 @@ type Options struct {
 
 var opt = Options{}
 var twu = TwitterUtil{0, TweetLocation{}}
-var nc = NChat{}
 
 func OnJoin(e *irc.Event) {
 	if e.Nick != opt.Nick {
@@ -85,20 +84,6 @@ func OnPrivMsg(e *irc.Event) {
 				e.Connection.Privmsgf(args[0], "!s <thing>\t- Does a quick Google")
 				e.Connection.Privmsgf(args[0], "!js <code> \t- Runs some JS code")
 				e.Connection.Privmsgf(args[0], "!thelp \t- Gets twitter command list")
-				break
-			}
-		case "!read":
-			{
-				q := strings.TrimSpace(strings.Replace(args[1], "!read ", "", -1))
-				ht := new(HttpUtils)
-				doc := ht.GetBodyText(q)
-				doc = strings.Replace(doc, "\n", "", -1)
-				dcs := strings.Split(doc, ".")
-				for _, d := range dcs {
-					nc.Chat(d)
-				}
-
-				e.Connection.Privmsgf(args[0], "Done! irsmrt")
 				break
 			}
 		case "!thelp":
@@ -283,14 +268,12 @@ func main() {
 			useTLS:          true,
 			DefaultChans:    []string{"#lobby"},
 			OperDetails:     []string{ /* USERNAME, PASSWORD*/ },
-			TwitterTokenDir: ".",
+			TwitterTokenDir: "./",
 		}
 
 		jout, _ := json.Marshal(opt)
 		ioutil.WriteFile("options.conf", jout, 0644)
 	}
-
-	nc.Init(3)
 
 	i := irc.IRC(opt.Nick, opt.Nick)
 	i.Debug = true
@@ -334,7 +317,7 @@ func main() {
 						if je == nil {
 							fmt.Printf("Starting user stream %s", tk.ScreenName)
 							go func() {
-								twu.ListenToUserStream(i, tk.OauthToken, tk.OauthTokenSecret)
+								twu.ListenToUserStream(i, tk)
 							}()
 						} else {
 							fmt.Printf("Failed to parse token file %s (%s)", file.Name(), je)
