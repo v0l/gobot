@@ -331,7 +331,7 @@ func main() {
 					of, ofe := ioutil.ReadFile(opt.TwitterTokenDir + "/" + file.Name())
 					if ofe == nil {
 						je := json.Unmarshal(of, &tk)
-						if je != nil {
+						if je == nil {
 							fmt.Printf("Starting user stream %s", tk.ScreenName)
 							go func() {
 								twu.ListenToUserStream(i, tk.OauthToken, tk.OauthTokenSecret)

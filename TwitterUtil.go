@@ -56,8 +56,12 @@ func (*TwitterUtil) ListTokens(e *irc.Event) {
 				of, ofe := ioutil.ReadFile(opt.TwitterTokenDir + "/" + file.Name())
 				if ofe == nil {
 					je := json.Unmarshal(of, &tk)
-					if je != nil {
-						e.Connection.Privmsgf(e.Arguments[0], " - %s (%s)", tk.ScreenName, file.Name())
+					if je == nil {
+						if tk.OauthToken == opt.TwitterAuthKey {
+							e.Connection.Privmsgf(e.Arguments[0], " - %s (%s)(Active)", tk.ScreenName, file.Name())
+						} else {
+							e.Connection.Privmsgf(e.Arguments[0], " - %s (%s)", tk.ScreenName, file.Name())
+						}
 					} else {
 						e.Connection.Privmsgf(e.Arguments[0], "Failed to parse token file %s (%s)", file.Name(), je)
 					}
@@ -78,12 +82,12 @@ func (*TwitterUtil) LoadToken(e *irc.Event, name string) {
 	of, ofe := ioutil.ReadFile(opt.TwitterTokenDir + "/" + name)
 	if ofe == nil {
 		je := json.Unmarshal(of, &tk)
-		if je != nil {
+		if je == nil {
 			opt.TwitterAuthKey = tk.OauthToken
 			opt.TwitterAuthSecret = tk.OauthTokenSecret
 			opt.TwitterHandle = tk.ScreenName
 
-			e.Connection.Privmsgf(e.Arguments[0], "[%s] Twitter account set to: %s", e.Nick, tk.ScreenName)
+			e.Connection.Privmsgf(e.Arguments[0], "[%s] Twitter account set to: %s (%s)", e.Nick, opt.TwitterHandle, tk.OauthToken)
 		} else {
 			e.Connection.Privmsgf(e.Arguments[0], "[%s] Error parsing json file: %s", e.Nick, name)
 		}
@@ -180,6 +184,11 @@ func (t *TwitterUtil) SendTweet(e *irc.Event, q string) {
 	anaconda.SetConsumerKey(opt.TwitterAppKey)
 	anaconda.SetConsumerSecret(opt.TwitterAppSecret)
 	api := anaconda.NewTwitterApi(opt.TwitterAuthKey, opt.TwitterAuthSecret)
+	_, ve := api.VerifyCredentials()
+	if ve != nil {
+		e.Connection.Privmsgf(e.Arguments[0], "[%s] Credentials could not be validated (%s)", e.Nick, ve)
+		return
+	}
 
 	vals := url.Values{}
 
