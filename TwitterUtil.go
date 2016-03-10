@@ -48,19 +48,23 @@ func (*TwitterUtil) GetHelp(e *irc.Event) {
 func (*TwitterUtil) ListTokens(e *irc.Event) {
 	files, err := ioutil.ReadDir(opt.TwitterTokenDir)
 	if err == nil {
-		e.Connection.Privmsgf(e.Arguments[0], "Twitter account tokens:")
 		tk := AuthToken{}
 
-		for _, file := range files {
-			of, ofe := ioutil.ReadFile(opt.TwitterTokenDir + "/" + file.Name())
-			if ofe == nil {
-				je := json.Unmarshal(of, &tk)
-				if je != nil {
-					e.Connection.Privmsgf(e.Arguments[0], " - %s (%s)", tk.ScreenName, file.Name())
+		if len(files) > 0 {
+			e.Connection.Privmsgf(e.Arguments[0], "Twitter account tokens:")
+			for _, file := range files {
+				of, ofe := ioutil.ReadFile(opt.TwitterTokenDir + "/" + file.Name())
+				if ofe == nil {
+					je := json.Unmarshal(of, &tk)
+					if je != nil {
+						e.Connection.Privmsgf(e.Arguments[0], " - %s (%s)", tk.ScreenName, file.Name())
+					}
+				} else {
+					e.Connection.Privmsgf(e.Arguments[0], "[%s] Couldn't open token file (%s)", e.Nick, ofe)
 				}
-			} else {
-				e.Connection.Privmsgf(e.Arguments[0], "[%s] Couldn't open token file (%s)", e.Nick, ofe)
 			}
+		} else {
+			e.Connection.Privmsgf(e.Arguments[0], "[%s] No twitter tokens found in %s", e.Nick, opt.TwitterTokenDir)
 		}
 	} else {
 		e.Connection.Privmsgf(e.Arguments[0], "[%s] Couldn't open token dir (%s)", e.Nick, err)
