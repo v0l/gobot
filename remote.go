@@ -15,7 +15,7 @@ type RemoteIrc struct {
 }
 
 func (r *RemoteIrc) OnPrivMsg(e *irc.Event) {
-	r.main.Privmsgf("#lobby", "[%s] %s", e.Nick, e.Message())
+	r.main.Privmsgf("#lobby", "[%s][%s] %s: %s", r.server, r.channel, e.Nick, e.Message())
 }
 
 func (r *RemoteIrc) Run(server, nick, ch string, t bool) {
@@ -34,14 +34,17 @@ func (r *RemoteIrc) Run(server, nick, ch string, t bool) {
 		})
 		r.i.AddCallback("PRIVMSG", r.OnPrivMsg)
 	}
-
-	r.i.Loop()
 }
 
 func (r *RemoteIrc) SendPrivmsg(ch, msg string) {
-	r.i.Privmsg(ch, msg)
+	if r.i != nil {
+		r.i.Privmsg(ch, msg)
+	}
 }
 
 func (r *RemoteIrc) Stop() {
-	r.i.Disconnect()
+	if r.i != nil {
+		r.i.Quit()
+		r.i.Disconnect()
+	}
 }

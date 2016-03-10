@@ -109,15 +109,12 @@ func OnPrivMsg(e *irc.Event) {
 			{
 				if len(cmd) > 4 {
 					nc := RemoteIrc{}
-
-					go func() {
-						nc.main = e.Connection
-						ncs := false
-						if strings.ToLower(cmd[4]) == "true" {
-							ncs = true
-						}
-						nc.Run(cmd[1], cmd[2], cmd[3], ncs)
-					}()
+					nc.main = e.Connection
+					ncs := false
+					if strings.ToLower(cmd[4]) == "true" {
+						ncs = true
+					}
+					nc.Run(cmd[1], cmd[2], cmd[3], ncs)
 
 					rc = append(rc, nc)
 				} else {
@@ -133,8 +130,14 @@ func OnPrivMsg(e *irc.Event) {
 				if len(cmd) > 1 {
 					srv, ser := strconv.Atoi(cmd[1])
 					if ser == nil {
-						rc[srv].Stop()
-						rc = append(rc[:srv], rc[srv+1:]...)
+						if srv < len(rc) {
+							rc[srv].Stop()
+							if len(rc) == 1 {
+								rc = rc[:0]
+							} else {
+								rc = append(rc[:srv], rc[srv+1:]...)
+							}
+						}
 					}
 				}
 				break
