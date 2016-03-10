@@ -93,12 +93,14 @@ func OnPrivMsg(e *irc.Event) {
 			}
 		case "!.":
 			{
-				if len(cmd) > 2 {
+				if len(cmd) > 3 {
 					q := strings.TrimSpace(strings.Replace(args[1], "!. "+cmd[1]+" "+cmd[2], "", -1))
 
 					srv, ser := strconv.Atoi(cmd[1])
-					if ser == nil && len(rc) > srv {
-						rc[srv].SendPrivmsg(cmd[2], q)
+					if ser == nil {
+						if srv < len(rc) {
+							rc[srv].SendPrivmsg(cmd[2], q)
+						}
 					}
 				}
 				break
