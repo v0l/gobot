@@ -305,6 +305,9 @@ func main() {
 
 	go func() {
 		<-irc_ready
+		i.Join("#twitter")
+		i.Join("#twitterspam")
+
 		files, err := ioutil.ReadDir(opt.TwitterTokenDir)
 		if err == nil {
 			var tk = TwitterAuthToken{}

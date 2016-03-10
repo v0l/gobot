@@ -294,9 +294,6 @@ func (*TwitterUtil) ListenToUserStream(i *irc.Connection, auth TwitterAuthToken)
 
 	stream := api.UserStream(url.Values{})
 	if stream != nil {
-		i.Join("#twitter")
-		i.Join("#twitterspam")
-
 		for {
 			tw := <-stream.C
 			switch st := tw.(type) {
