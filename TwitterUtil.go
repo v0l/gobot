@@ -58,8 +58,12 @@ func (*TwitterUtil) ListTokens(e *irc.Event) {
 				if je != nil {
 					e.Connection.Privmsgf(e.Arguments[0], " - %s (%s)", tk.ScreenName, file.Name())
 				}
+			} else {
+				e.Connection.Privmsgf(e.Arguments[0], "[%s] Couldn't open token file (%s)", e.Nick, ofe)
 			}
 		}
+	} else {
+		e.Connection.Privmsgf(e.Arguments[0], "[%s] Couldn't open token dir (%s)", e.Nick, err)
 	}
 }
 
