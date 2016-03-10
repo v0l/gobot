@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"strconv"
 	"strings"
 
 	"github.com/thoj/go-ircevent"
@@ -41,6 +42,7 @@ type Options struct {
 
 var opt = Options{}
 var twu = TwitterUtil{0, TweetLocation{}}
+var rc = []RemoteIrc{}
 
 func OnJoin(e *irc.Event) {
 	if e.Nick != opt.Nick {
@@ -83,7 +85,53 @@ func OnPrivMsg(e *irc.Event) {
 				e.Connection.Privmsgf(args[0], "!ud (!w) <word>\t- Looks words up on urban dictionary")
 				e.Connection.Privmsgf(args[0], "!s <thing>\t- Does a quick Google")
 				e.Connection.Privmsgf(args[0], "!js <code> \t- Runs some JS code")
+				e.Connection.Privmsgf(args[0], "!remote <server> <nick> <chan> <ssl>\t- Connectes to another IRC server and pipes chat to #lobby")
+				e.Connection.Privmsgf(args[0], "!rclose <server#>\t- Close connection to remote")
+				e.Connection.Privmsgf(args[0], "!. <server#> <chan> <msg>\t- Sends a message to a remote connection")
 				e.Connection.Privmsgf(args[0], "!thelp \t- Gets twitter command list")
+				break
+			}
+		case "!.":
+			{
+				if len(cmd) > 2 {
+					q := strings.TrimSpace(strings.Replace(args[1], "!. "+cmd[1]+" "+cmd[2], "", -1))
+
+					srv, ser := strconv.Atoi(cmd[1])
+					if ser == nil && len(rc) > srv {
+						rc[srv].SendPrivmsg(cmd[2], q)
+					}
+				}
+				break
+			}
+		case "!remote":
+			{
+				if len(cmd) > 4 {
+					nc := RemoteIrc{}
+					nc.main = e.Connection
+					ncs := false
+					if strings.ToLower(cmd[4]) == "true" {
+						ncs = true
+					}
+					nc.Run(cmd[1], cmd[2], cmd[3], ncs)
+
+					rc = append(rc, nc)
+				} else {
+					e.Connection.Privmsgf(args[0], "Remote connections:")
+					for k, v := range rc {
+						e.Connection.Privmsgf(args[0], "%v: %s", k, v)
+					}
+				}
+				break
+			}
+		case "!rclose":
+			{
+				if len(cmd) > 1 {
+					srv, ser := strconv.Atoi(cmd[1])
+					if ser == nil {
+						rc[srv].Stop()
+						rc = append(rc[:srv], rc[srv+1:]...)
+					}
+				}
 				break
 			}
 		case "!thelp":
