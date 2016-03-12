@@ -27,8 +27,8 @@ func (r *RemoteIrc) Run(server, nick, ch string, t bool) bool {
 	r.nick = nick
 	r.channel = ch
 
-	r.i.Join(r.GetChanName())
-	r.i.SendRawf("TOPIC %v: %v\n", ch, server)
+	r.main.Join(r.GetChanName())
+	r.main.SendRawf("TOPIC %v: %v\n", ch, server)
 	
 	r.i = irc.IRC(nick, nick)
 	r.i.UseTLS = t
