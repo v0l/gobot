@@ -19,7 +19,7 @@ func (r * RemoteIrc) GetChanName() string{
 }
 
 func (r *RemoteIrc) OnPrivMsg(e *irc.Event) {
-	r.main.Privmsgf(r.GetChanName(), "[%s][%s] %s: %s", r.server, r.channel, e.Nick, e.Message())
+	r.main.Privmsgf(r.GetChanName(), "%s: %s", r.server, r.channel, e.Nick, e.Message())
 }
 
 func (r *RemoteIrc) Run(server, nick, ch string, t bool) bool {
@@ -28,6 +28,7 @@ func (r *RemoteIrc) Run(server, nick, ch string, t bool) bool {
 	r.channel = ch
 
 	r.i.Join(r.GetChanName())
+	r.i.SendRawf("TOPIC %v: %v\n", ch, server)
 	
 	r.i = irc.IRC(nick, nick)
 	r.i.UseTLS = t
