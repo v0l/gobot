@@ -2,8 +2,7 @@ package main
 
 import (
 	"crypto/tls"
-	"strings"
-
+"fmt"
 	"github.com/thoj/go-ircevent"
 )
 
@@ -15,12 +14,12 @@ type RemoteIrc struct {
 	channel string
 }
 
+func (r * RemoteIrc) GetChanName() string{
+	return fmt.Sprintf("#m_%v", r.channel)
+}
+
 func (r *RemoteIrc) OnPrivMsg(e *irc.Event) {
-	if strings.Index(e.Host, "@") > 0 {
-		r.main.Privmsgf("#lobby", "[%s][%s] @%s: %s", r.server, r.channel, e.Nick, e.Message())
-	} else {
-		r.main.Privmsgf("#lobby", "[%s][%s] %s: %s", r.server, r.channel, e.Nick, e.Message())
-	}
+	r.main.Privmsgf(r.GetChanName(), "[%s][%s] %s: %s", r.server, r.channel, e.Nick, e.Message())
 }
 
 func (r *RemoteIrc) Run(server, nick, ch string, t bool) bool {
@@ -28,6 +27,8 @@ func (r *RemoteIrc) Run(server, nick, ch string, t bool) bool {
 	r.nick = nick
 	r.channel = ch
 
+	r.i.Join(r.GetChanName())
+	
 	r.i = irc.IRC(nick, nick)
 	r.i.UseTLS = t
 	r.i.TLSConfig = &tls.Config{InsecureSkipVerify: true}
@@ -44,9 +45,9 @@ func (r *RemoteIrc) Run(server, nick, ch string, t bool) bool {
 	return false
 }
 
-func (r *RemoteIrc) SendPrivmsg(ch, msg string) {
+func (r *RemoteIrc) SendPrivmsg(msg string) {
 	if r.i != nil {
-		r.i.Privmsg(ch, msg)
+		r.i.Privmsg(r.channel, msg)
 	}
 }
 

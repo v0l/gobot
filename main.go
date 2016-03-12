@@ -87,22 +87,7 @@ func OnPrivMsg(e *irc.Event) {
 				e.Connection.Privmsgf(args[0], "!js <code> \t- Runs some JS code")
 				e.Connection.Privmsgf(args[0], "!remote <server> <nick> <chan> <ssl>\t- Connectes to another IRC server and pipes chat to #lobby")
 				e.Connection.Privmsgf(args[0], "!rclose <server#>\t- Close connection to remote")
-				e.Connection.Privmsgf(args[0], "!. <server#> <chan> <msg>\t- Sends a message to a remote connection")
 				e.Connection.Privmsgf(args[0], "!thelp \t- Gets twitter command list")
-				break
-			}
-		case "!.":
-			{
-				if len(cmd) > 3 {
-					q := strings.TrimSpace(strings.Replace(args[1], "!. "+cmd[1]+" "+cmd[2], "", -1))
-
-					srv, ser := strconv.Atoi(cmd[1])
-					if ser == nil {
-						if srv < len(rc) {
-							rc[srv].SendPrivmsg(cmd[2], q)
-						}
-					}
-				}
 				break
 			}
 		case "!remote":
@@ -296,17 +281,12 @@ func OnPrivMsg(e *irc.Event) {
 	} else {
 		utl := new(HttpUtils)
 		utl.GetHttpTitle(e)
-
-		/*var mn string
-		if strings.Contains(msg, " ") {
-			mns := strings.Split(msg, " ")
-			mn = mns[rand.Intn(len(mns))]
-		} else {
-			mn = msg
+		
+		for _, v := range rc {
+			if v.GetChanName() == args[0] {
+				v.SendPrivmsg(e.Message())
+			}
 		}
-
-		e.Connection.Privmsgf(args[0], nc.Next(mn))
-		nc.Chat(msg)*/
 	}
 }
 
