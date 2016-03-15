@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/domainr/whois"
 	"github.com/thoj/go-ircevent"
 )
 
@@ -90,6 +91,26 @@ func OnPrivMsg(e *irc.Event) {
 				e.Connection.Privmsgf(args[0], "!rclose <server#>\t- Close connection to remote")
 				e.Connection.Privmsgf(args[0], "!ip <dns> \t- Gets ip addresses for domain")
 				e.Connection.Privmsgf(args[0], "!thelp \t- Gets twitter command list")
+				break
+			}
+		case "!whois":
+			{
+				if len(cmd) > 1 {
+					request, err := whois.NewRequest(cmd[1])
+					if err == nil {
+						response, err2 := whois.DefaultClient.Fetch(request)
+						if err2 == nil {
+							rs := strings.Split(response.String(), "\n")
+							for _, v := range rs {
+								e.Connection.Privmsgf(args[0], "%v", v)
+							}
+						} else {
+							e.Connection.Privmsgf(args[0], "Error: %v", err2)
+						}
+					} else {
+						e.Connection.Privmsgf(args[0], "Error: %v", err)
+					}
+				}
 				break
 			}
 		case "!ip":
@@ -362,33 +383,7 @@ func main() {
 		i.Join("#twitter")
 		i.Join("#twitterspam")
 
-		files, err := ioutil.ReadDir(opt.TwitterTokenDir)
-		if err == nil {
-			var tk = TwitterAuthToken{}
-
-			if len(files) > 0 {
-				for _, file := range files {
-					of, ofe := ioutil.ReadFile(opt.TwitterTokenDir + "/" + file.Name())
-					if ofe == nil {
-						je := json.Unmarshal(of, &tk)
-						if je == nil {
-							fmt.Printf("Starting user stream %s", tk.ScreenName)
-							go func() {
-								twu.ListenToUserStream(i, tk)
-							}()
-						} else {
-							fmt.Printf("Failed to parse token file %s (%s)", file.Name(), je)
-						}
-					} else {
-						fmt.Printf("Couldn't open token file (%s)", ofe)
-					}
-				}
-			} else {
-				fmt.Printf("No twitter tokens found in %s", opt.TwitterTokenDir)
-			}
-		} else {
-			fmt.Printf("Couldn't open token dir (%s)", err)
-		}
+		//twu.ListenToUserStream(i, tk)
 	}()
 
 	i.Loop()
