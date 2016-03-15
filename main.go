@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"net"
 	"strconv"
 	"strings"
 
@@ -87,7 +88,20 @@ func OnPrivMsg(e *irc.Event) {
 				e.Connection.Privmsgf(args[0], "!js <code> \t- Runs some JS code")
 				e.Connection.Privmsgf(args[0], "!remote <server> <nick> <chan> <ssl>\t- Connectes to another IRC server and pipes chat to #lobby")
 				e.Connection.Privmsgf(args[0], "!rclose <server#>\t- Close connection to remote")
+				e.Connection.Privmsgf(args[0], "!ip <dns> \t- Gets ip addresses for domain")
 				e.Connection.Privmsgf(args[0], "!thelp \t- Gets twitter command list")
+				break
+			}
+		case "!ip":
+			{
+				if len(cmd) > 1 {
+					ips, er := net.LookupIP(cmd[1])
+					if er == nil {
+						for _, ip := range ips {
+							e.Connection.Privmsgf(args[0], "[%v] %v %v", e.Nick, ip.String(), cmd[1])
+						}
+					}
+				}
 				break
 			}
 		case "!remote":
@@ -281,7 +295,7 @@ func OnPrivMsg(e *irc.Event) {
 	} else {
 		utl := new(HttpUtils)
 		utl.GetHttpTitle(e)
-		
+
 		for _, v := range rc {
 			if v.GetChanName() == args[0] {
 				v.SendPrivmsg(e.Message())
