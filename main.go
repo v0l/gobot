@@ -134,7 +134,7 @@ func OnPrivMsg(e *irc.Event) {
 			{
 				if len(cmd) > 4 {
 					nc := RemoteIrc{}
-					nc.main = e.Connection
+					nc.Main = e.Connection
 					ncs := false
 					if strings.ToLower(cmd[4]) == "true" {
 						ncs = true
@@ -153,7 +153,7 @@ func OnPrivMsg(e *irc.Event) {
 				} else {
 					e.Connection.Privmsgf(args[0], "Remote connections:")
 					for k, v := range rc {
-						e.Connection.Privmsgf(args[0], "%v: %s %s (%s)(%s)", k, v.server, v.channel, v.nick, v.GetChanName())
+						e.Connection.Privmsgf(args[0], "%v: %s %s (%s)(%s)", k, v.Server, v.Channel, v.Nick, v.GetChanName())
 					}
 				}
 				break
@@ -411,7 +411,7 @@ func main() {
 		}
 
 		for _, r := range rc {
-			r.main = i
+			r.Main = i
 			r.Start()
 		}
 	}()

@@ -8,45 +8,45 @@ import (
 )
 
 type RemoteIrc struct {
-	main    *irc.Connection `json:"-"`
-	i       *irc.Connection `json:"-"`
-	server  string          `json:"server"`
-	nick    string          `json:"nick"`
-	channel string          `json:"channel"`
-	ssl     bool            `json:"ssl"`
+	Main    *irc.Connection `json:"-"`
+	I       *irc.Connection `json:"-"`
+	Server  string          `json:"server"`
+	Nick    string          `json:"nick"`
+	Channel string          `json:"channel"`
+	Ssl     bool            `json:"ssl"`
 }
 
 func (r *RemoteIrc) GetChanName() string {
-	return fmt.Sprintf("#m_%v", r.channel)
+	return fmt.Sprintf("#m_%v", r.Channel)
 }
 
 func (r *RemoteIrc) OnPrivMsg(e *irc.Event) {
-	r.main.Privmsgf(r.GetChanName(), "<%s>: %s", e.Nick, e.Message())
+	r.Main.Privmsgf(r.GetChanName(), "<%s>: %s", e.Nick, e.Message())
 }
 
 func (r *RemoteIrc) Run(server, nick, ch string, t bool) bool {
-	r.server = server
-	r.nick = nick
-	r.channel = ch
-	r.ssl = t
+	r.Server = server
+	r.Nick = nick
+	r.Channel = ch
+	r.Ssl = t
 
 	return r.Start()
 }
 
 func (r *RemoteIrc) Start() bool {
-	r.main.Join(r.GetChanName())
-	r.main.SendRawf("TOPIC %v :%v\n", r.channel, r.server)
+	r.Main.Join(r.GetChanName())
+	r.Main.SendRawf("TOPIC %v :%v\n", r.Channel, r.Server)
 
-	r.i = irc.IRC(r.nick, r.nick)
-	r.i.UseTLS = r.ssl
-	r.i.TLSConfig = &tls.Config{InsecureSkipVerify: true}
+	r.I = irc.IRC(r.Nick, r.Nick)
+	r.I.UseTLS = r.Ssl
+	r.I.TLSConfig = &tls.Config{InsecureSkipVerify: true}
 
-	err := r.i.Connect(r.server)
+	err := r.I.Connect(r.Server)
 	if err == nil {
-		r.i.AddCallback("001", func(e *irc.Event) {
-			e.Connection.Join(r.channel)
+		r.I.AddCallback("001", func(e *irc.Event) {
+			e.Connection.Join(r.Channel)
 		})
-		r.i.AddCallback("PRIVMSG", r.OnPrivMsg)
+		r.I.AddCallback("PRIVMSG", r.OnPrivMsg)
 		return true
 	}
 
@@ -54,16 +54,16 @@ func (r *RemoteIrc) Start() bool {
 }
 
 func (r *RemoteIrc) SendPrivmsg(msg string) {
-	if r.i != nil {
-		r.i.Privmsg(r.channel, msg)
+	if r.I != nil {
+		r.I.Privmsg(r.Channel, msg)
 	}
 }
 
 func (r *RemoteIrc) Stop() {
-	if r.i != nil {
-		if r.i.Connected() {
-			r.i.Quit()
-			r.i.Disconnect()
+	if r.I != nil {
+		if r.I.Connected() {
+			r.I.Quit()
+			r.I.Disconnect()
 		}
 	}
 }
