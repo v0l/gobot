@@ -94,6 +94,7 @@ func OnPrivMsg(e *irc.Event) {
 				e.Connection.Privmsgf(args[0], "!js <code> \t- Runs some JS code")
 				e.Connection.Privmsgf(args[0], "!remote <server> <nick> <chan> <ssl>\t- Connectes to another IRC server and pipes chat to #lobby")
 				e.Connection.Privmsgf(args[0], "!rclose <server#>\t- Close connection to remote")
+				e.Connection.Privmsgf(args[0], "!rjoin <server#> <chan>\t- Joins another chan on a remote connection")
 				e.Connection.Privmsgf(args[0], "!ip <dns> \t- Gets ip addresses for domain")
 				e.Connection.Privmsgf(args[0], "!thelp \t- Gets twitter command list")
 				break
@@ -153,7 +154,7 @@ func OnPrivMsg(e *irc.Event) {
 				} else {
 					e.Connection.Privmsgf(args[0], "Remote connections:")
 					for k, v := range rc {
-						e.Connection.Privmsgf(args[0], "%v: %s %s (%s)(%s)", k, v.Server, v.Channel, v.Nick, v.GetChanName())
+						e.Connection.Privmsgf(args[0], "%v: %s %s (%s)", k, v.Server, v.Channels, v.Nick)
 					}
 				}
 				break
@@ -177,6 +178,19 @@ func OnPrivMsg(e *irc.Event) {
 							}
 
 							defer tc.Stop()
+						}
+					}
+				}
+				break
+			}
+		case "!rjoin":
+			{
+				if len(cmd) > 2 {
+					srv, ser := strconv.Atoi(cmd[1])
+					if ser == nil {
+						if srv < len(rc) {
+							tc := rc[srv]
+							tc.JoinChan(cmd[2])
 						}
 					}
 				}
@@ -334,8 +348,9 @@ func OnPrivMsg(e *irc.Event) {
 		utl.GetHttpTitle(e)
 
 		for _, v := range rc {
-			if v.GetChanName() == args[0] {
-				v.SendPrivmsg(e.Message())
+			ch := args[0][3:]
+			if v.HasChan(ch) {
+				v.SendPrivmsg(e.Message(), ch)
 			}
 		}
 	}
