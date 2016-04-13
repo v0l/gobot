@@ -40,6 +40,11 @@ type Options struct {
 	TropoToken    string
 	TropoTokenMsg string
 	CallDir       string
+
+	//Email
+	MailServer   string
+	MailUser     string
+	MailPassword string
 }
 
 var opt = Options{}
@@ -137,6 +142,12 @@ func OnPrivMsg(e *irc.Event) {
 
 					if nc.Run(cmd[1], cmd[2], cmd[3], ncs) {
 						rc = append(rc, nc)
+
+						js, jer := json.Marshal(rc)
+						if jer == nil {
+							ioutil.WriteFile("remote.json", js, 0644)
+						}
+
 						e.Connection.Privmsgf(args[0], "[%v] Connected to %s", e.Nick, cmd[1])
 					}
 				} else {
@@ -158,6 +169,11 @@ func OnPrivMsg(e *irc.Event) {
 								rc = rc[:0]
 							} else {
 								rc = append(rc[:srv], rc[srv+1:]...)
+							}
+
+							js, jer := json.Marshal(rc)
+							if jer == nil {
+								ioutil.WriteFile("remote.json", js, 0644)
 							}
 
 							defer tc.Stop()
@@ -384,6 +400,20 @@ func main() {
 		i.Join("#twitterspam")
 
 		//twu.ListenToUserStream(i, tk)
+
+		//load remote connections
+		rf, fer := ioutil.ReadFile("remote.json")
+		if fer == nil {
+			jer := json.Unmarshal(rf, &rc)
+			if jer != nil {
+				i.Privmsgf("#lobby", "Failed to load remote connection list, %s", jer.Error())
+			}
+		}
+
+		for _, r := range rc {
+			r.main = i
+			r.Start()
+		}
 	}()
 
 	i.Loop()
