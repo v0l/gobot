@@ -191,6 +191,11 @@ func OnPrivMsg(e *irc.Event) {
 						if srv < len(rc) {
 							tc := rc[srv]
 							tc.JoinChan(cmd[2])
+
+							js, jer := json.Marshal(rc)
+							if jer == nil {
+								ioutil.WriteFile("remote.json", js, 0644)
+							}
 						}
 					}
 				}

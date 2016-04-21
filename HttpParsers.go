@@ -14,6 +14,34 @@ import (
 	"golang.org/x/net/html"
 )
 
+type GoogleSearch struct {
+	ResponseData struct {
+		Results []struct {
+			GsearchResultClass string `json:"GsearchResultClass"`
+			UnescapedURL       string `json:"unescapedUrl"`
+			URL                string `json:"url"`
+			VisibleURL         string `json:"visibleUrl"`
+			CacheURL           string `json:"cacheUrl"`
+			Title              string `json:"title"`
+			TitleNoFormatting  string `json:"titleNoFormatting"`
+			Content            string `json:"content"`
+		} `json:"results"`
+		Cursor struct {
+			ResultCount string `json:"resultCount"`
+			Pages       []struct {
+				Start string `json:"start"`
+				Label int    `json:"label"`
+			} `json:"pages"`
+			EstimatedResultCount string `json:"estimatedResultCount"`
+			CurrentPageIndex     int    `json:"currentPageIndex"`
+			MoreResultsURL       string `json:"moreResultsUrl"`
+			SearchResultTime     string `json:"searchResultTime"`
+		} `json:"cursor"`
+	} `json:"responseData"`
+	ResponseDetails interface{} `json:"responseDetails"`
+	ResponseStatus  int         `json:"responseStatus"`
+}
+
 type YtData struct {
 	Kind     string `json:"kind"`
 	Etag     string `json:"etag"`
@@ -78,10 +106,10 @@ type HttpUtils struct {
 func (*HttpUtils) ParseYoutubeLink(e *irc.Event) {
 	msg := e.Message()
 
-	ytr,_ := regexp.Compile("\\?v=(\\w+)")
+	ytr, _ := regexp.Compile("\\?v=(\\w+)")
 	ytm := ytr.FindAllStringSubmatch(msg, -1)
 	if len(ytm) > 0 {
-		for _, y := range(ytm){
+		for _, y := range ytm {
 			//Load video data
 			apiKey := opt.YoutubeApiKey
 			doc, de := http.Get(fmt.Sprintf("https://www.googleapis.com/youtube/v3/videos?part=snippet&id=%s&key=%s", y[1], apiKey))
@@ -94,7 +122,7 @@ func (*HttpUtils) ParseYoutubeLink(e *irc.Event) {
 				if jer == nil {
 					if len(gd.Items) > 0 {
 						e.Connection.Privmsgf(e.Arguments[0], "\u25B2 %s \u25B2", gd.Items[0].Snippet.Title)
-					}else {
+					} else {
 						e.Connection.Privmsgf(e.Arguments[0], "Nothing found for %s", y[1])
 					}
 				}
@@ -177,31 +205,18 @@ func (*HttpUtils) SearchGoogle(e *irc.Event, q string) {
 	if de == nil {
 		defer doc.Body.Close()
 
-		z, _ := html.Parse(doc.Body)
-		done := false
-		var f func(*html.Node)
-		f = func(n *html.Node) {
-			if n.Type == html.ElementNode && n.Data == "h3" && !done {
-				for _, a := range n.Attr {
-					if a.Key == "class" && a.Val == "r" {
-						url := ""
-						for _, at := range n.FirstChild.Attr {
-							if at.Key == "href" {
-								url = at.Val
-								break
-							}
-						}
-						e.Connection.Privmsgf(e.Arguments[0], "[%s]: (%s) - %s", e.Nick, n.FirstChild.LastChild.Data, url)
-						done = true
-						break
-					}
+		sr := GoogleSearch{}
+		data, re := ioutil.ReadAll(doc.Body)
+		if re == nil {
+			jer := json.Unmarshal(data, &sr)
+			if jer == nil {
+				if sr.ResponseStatus == 200 && len(sr.ResponseData.Results) > 0 {
+					res := sr.ResponseData.Results[0]
+
+					e.Connection.Privmsgf(e.Arguments[0], "[%s]: (%s) - %s", e.Nick, res.TitleNoFormatting, res.URL)
 				}
 			}
-			for c := n.FirstChild; c != nil; c = c.NextSibling {
-				f(c)
-			}
 		}
-		f(z)
 	}
 }
 
