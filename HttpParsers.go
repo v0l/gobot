@@ -197,7 +197,7 @@ func (*HttpUtils) GetHttpTitle(e *irc.Event) {
 
 func (*HttpUtils) SearchGoogle(e *irc.Event, q string) {
 	client := &http.Client{}
-	req, _ := http.NewRequest("GET", fmt.Sprintf("https://www.google.ie/search?q=%s&gws_rd=ssl", url.QueryEscape(q)), nil)
+	req, _ := http.NewRequest("GET", fmt.Sprintf("http://ajax.googleapis.com/ajax/services/search/web?v=1.0&q=%s", url.QueryEscape(q)), nil)
 	req.Header.Set("User-Agent", USERAGENT)
 	req.Header.Set("dnt", "1")
 
