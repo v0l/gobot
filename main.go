@@ -108,7 +108,9 @@ func OnPrivMsg(e *irc.Event) {
 						if err2 == nil {
 							rs := strings.Split(response.String(), "\n")
 							for _, v := range rs {
-								e.Connection.Privmsgf(args[0], "%v", v)
+								if strings.Index(v, "%") == -1 {
+									e.Connection.Privmsgf(args[0], "%v", v)
+								}
 							}
 						} else {
 							e.Connection.Privmsgf(args[0], "Error: %v", err2)
