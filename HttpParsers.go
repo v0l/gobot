@@ -97,7 +97,7 @@ type YtData struct {
 }
 
 const (
-	USERAGENT string = "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.97 Safari/537.36"
+	USERAGENT string = "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.94 Safari/537.36"
 )
 
 type HttpUtils struct {
@@ -284,7 +284,7 @@ func (*HttpUtils) GetFunFact(e *irc.Event) {
 		f = func(n *html.Node) {
 			if n.Type == html.ElementNode && !done {
 				for _, a := range n.Attr {
-					if a.Key == "class" && a.Val == "_fXg mod" {
+					if a.Key == "class" && a.Val == "_Wtj mod" {
 						question := n.FirstChild.NextSibling.FirstChild.FirstChild.Data
 						answer := n.FirstChild.NextSibling.FirstChild.NextSibling.FirstChild.NextSibling.FirstChild.Data
 
