@@ -109,7 +109,9 @@ func OnPrivMsg(e *irc.Event) {
 							rs := strings.Split(response.String(), "\n")
 							for _, v := range rs {
 								if strings.Index(v, "%") == -1 {
-									e.Connection.Privmsgf(args[0], "%v", v)
+									if (strings.Index(v, ":") != -1 && strings.Index(v, ":") != len(v)-1) || strings.Index(v, ":") == -1 {
+										e.Connection.Privmsgf(args[0], "%v", v)
+									}
 								}
 							}
 						} else {
