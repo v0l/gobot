@@ -1,6 +1,7 @@
 package main
 
 import (
+	"compress/gzip"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -197,26 +198,57 @@ func (*HttpUtils) GetHttpTitle(e *irc.Event) {
 
 func (*HttpUtils) SearchGoogle(e *irc.Event, q string) {
 	client := &http.Client{}
-	req, _ := http.NewRequest("GET", fmt.Sprintf("http://ajax.googleapis.com/ajax/services/search/web?v=1.0&q=%s", url.QueryEscape(q)), nil)
+	client.CheckRedirect = nil
+	req, _ := http.NewRequest("GET", fmt.Sprintf("https://www.google.ie/search?q=%s&gws_rd=ssl", q), nil)
 	req.Header.Set("User-Agent", USERAGENT)
-	req.Header.Set("dnt", "1")
+	req.Header.Add("Accept-Encoding", "gzip")
 
 	doc, de := client.Do(req)
 	if de == nil {
 		defer doc.Body.Close()
 
-		sr := GoogleSearch{}
-		data, re := ioutil.ReadAll(doc.Body)
-		if re == nil {
-			jer := json.Unmarshal(data, &sr)
-			if jer == nil {
-				if sr.ResponseStatus == 200 && len(sr.ResponseData.Results) > 0 {
-					res := sr.ResponseData.Results[0]
+		gz, gze := gzip.NewReader(doc.Body)
+		if gze != nil {
+			fmt.Printf("GZIP error: %s\n", gze)
+			return
+		}
+		defer gz.Close()
 
-					e.Connection.Privmsgf(e.Arguments[0], "[%s]: (%s) - %s", e.Nick, res.TitleNoFormatting, res.URL)
+		z, zer := html.Parse(gz)
+		if zer != nil {
+			fmt.Printf("HTML error: %s\n", zer)
+			return
+		}
+
+		done := false
+		var f func(*html.Node)
+		f = func(n *html.Node) {
+
+			if n.Type == html.ElementNode && n.Data == "h3" && !done {
+
+				for _, a := range n.Attr {
+					if a.Key == "class" && a.Val == "r" {
+						done = true
+						break
+					}
+				}
+
+				if done {
+					for _, a := range n.FirstChild.Attr {
+						if a.Key == "href" {
+							e.Connection.Privmsgf(e.Arguments[0], "%s: %s (%s)", e.Nick, a.Val, n.FirstChild.FirstChild.Data)
+							break
+						}
+					}
 				}
 			}
+			for c := n.FirstChild; c != nil; c = c.NextSibling {
+				f(c)
+			}
 		}
+		f(z)
+	} else {
+		e.Connection.Privmsgf(e.Arguments[0], "%s: %s", e.Nick, de)
 	}
 }
 
