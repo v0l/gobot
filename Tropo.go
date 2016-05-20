@@ -4,6 +4,7 @@ import (
 	"encoding/xml"
 	"fmt"
 	"io/ioutil"
+	"math/rand"
 	"net/http"
 	"net/url"
 	"strings"
@@ -54,17 +55,20 @@ func (*Tropo) Call(e *irc.Event, pn string, txt string) {
 }
 
 func (*Tropo) CallGroup(e *irc.Event, pn string) {
-	req, re := http.Get(fmt.Sprintf("https://api.tropo.com/1.0/sessions?action=create&token=%s&numbertodial=%s&mode=GROUPPTSN", opt.TropoToken, pn))
-	req.Header.Set("Content-Type", "application/json")
-	if re == nil {
-		body, _ := ioutil.ReadAll(req.Body)
-		var trsp = TropoResponse{}
-		je := xml.Unmarshal(body, &trsp)
-		if je == nil {
-			e.Connection.Privmsgf(e.Arguments[0], "[%s]: Group call to %s started!", e.Nick, pn)
-			e.Connection.Privmsgf(e.Arguments[0], "[%s]: A recording of this call will be available here: %s/%s.mp3", e.Nick, opt.CallDir, strings.Replace(trsp.ID, "\n", "", -1))
-		} else {
-			e.Connection.Privmsgf(e.Arguments[0], "[%s]: Call to %s started! (Failed to parse response: %s)", e.Nick, pn, je)
+	cn := rand.Intn(9999)
+	for _, x := range strings.Split(pn, ",") {
+		req, re := http.Get(fmt.Sprintf("https://api.tropo.com/1.0/sessions?action=create&token=%s&numbertodial=%s&mode=GROUPPTSN&cnf=%s", opt.TropoToken, x, cn))
+		req.Header.Set("Content-Type", "application/json")
+		if re == nil {
+			body, _ := ioutil.ReadAll(req.Body)
+			var trsp = TropoResponse{}
+			je := xml.Unmarshal(body, &trsp)
+			if je == nil {
+				e.Connection.Privmsgf(e.Arguments[0], "[%s]: Group call to %s started!", e.Nick, x)
+				e.Connection.Privmsgf(e.Arguments[0], "[%s]: A recording of this call will be available here: %s/%s.mp3", e.Nick, opt.CallDir, strings.Replace(trsp.ID, "\n", "", -1))
+			} else {
+				e.Connection.Privmsgf(e.Arguments[0], "[%s]: Call to %s started! (Failed to parse response: %s)", e.Nick, pn, je)
+			}
 		}
 	}
 }
