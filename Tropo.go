@@ -64,7 +64,7 @@ func (*Tropo) CallGroup(e *irc.Event, pn string) {
 			var trsp = TropoResponse{}
 			je := xml.Unmarshal(body, &trsp)
 			if je == nil {
-				e.Connection.Privmsgf(e.Arguments[0], "[%s]: Group call to %s started!", e.Nick, x)
+				e.Connection.Privmsgf(e.Arguments[0], "[%s]: Group call to %s started! (%s)", e.Nick, x, cn)
 				e.Connection.Privmsgf(e.Arguments[0], "[%s]: A recording of this call will be available here: %s/%s.mp3", e.Nick, opt.CallDir, strings.Replace(trsp.ID, "\n", "", -1))
 			} else {
 				e.Connection.Privmsgf(e.Arguments[0], "[%s]: Call to %s started! (Failed to parse response: %s)", e.Nick, pn, je)
