@@ -90,6 +90,7 @@ func OnPrivMsg(e *irc.Event) {
 				e.Connection.Privmsgf(args[0], "!love \t\t- Get some coding love!")
 				e.Connection.Privmsgf(args[0], "!sip <addr> <msg> \t- Calls a sip phone with a message or sound file (or both)")
 				e.Connection.Privmsgf(args[0], "!call <no> <msg> \t- Calls a phone number and says a message or plays a sound eg. !call +44XX1234567 I love you")
+				e.Connection.Privmsgf(args[0], "!callg <no> \t- Calls a phone number list and confrences them eg. !callg number1,number2,number3")
 				e.Connection.Privmsgf(args[0], "!sms <no> <msg> \t- Send an SMS to the supplied phone number")
 				e.Connection.Privmsgf(args[0], "!ud (!w) <word>\t- Looks words up on urban dictionary")
 				e.Connection.Privmsgf(args[0], "!s <thing>\t- Does a quick Google")
@@ -274,6 +275,14 @@ func OnPrivMsg(e *irc.Event) {
 
 				tr := new(Tropo)
 				tr.Call(e, pn, q)
+				break
+			}
+		case "!callg":
+			{
+				pn := cmd[1]
+
+				tr := new(Tropo)
+				tr.CallGroup(e, pn)
 				break
 			}
 		case "!sms":
