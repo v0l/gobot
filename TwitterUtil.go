@@ -77,20 +77,24 @@ func (*TwitterUtil) ListTokens(e *irc.Event) {
 	}
 }
 
-func (*TwitterUtil) LoadToken(e *irc.Event, name string) {
+func (*TwitterUtil) LoadToken(name string) TwitterAuthToken {
 	var tk = TwitterAuthToken{}
 	of, ofe := ioutil.ReadFile(opt.TwitterTokenDir + "/" + name)
 	if ofe == nil {
-		je := json.Unmarshal(of, &tk)
-		if je == nil {
-			opt.TwitterAuthKey = tk.OauthToken
-			opt.TwitterAuthSecret = tk.OauthTokenSecret
-			opt.TwitterHandle = tk.ScreenName
+		json.Unmarshal(of, &tk)
+	}
 
-			e.Connection.Privmsgf(e.Arguments[0], "[%s] Twitter account set to: %s (%s)", e.Nick, opt.TwitterHandle, tk.OauthToken)
-		} else {
-			e.Connection.Privmsgf(e.Arguments[0], "[%s] Error parsing json file: %s", e.Nick, name)
-		}
+	return tk
+}
+
+func (t *TwitterUtil) LoadTokenCmd(e *irc.Event, name string) {
+	tk := t.LoadToken(name)
+	if tk.OauthToken != "" {
+		opt.TwitterAuthKey = tk.OauthToken
+		opt.TwitterAuthSecret = tk.OauthTokenSecret
+		opt.TwitterHandle = tk.ScreenName
+
+		e.Connection.Privmsgf(e.Arguments[0], "[%s] Twitter account set to: %s (%s)", e.Nick, opt.TwitterHandle, tk.OauthToken)
 	} else {
 		e.Connection.Privmsgf(e.Arguments[0], "[%s] Error reading json file: %s", e.Nick, name)
 	}

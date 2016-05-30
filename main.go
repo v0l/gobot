@@ -29,9 +29,10 @@ type Options struct {
 	YoutubeApiKey string
 
 	//Twitter
-	TwitterAppKey    string
-	TwitterAppSecret string
-	TwitterTokenDir  string
+	TwitterAppKey      string
+	TwitterAppSecret   string
+	TwitterTokenDir    string
+	TwitterStreamToken string
 
 	//Temp twitter vars
 	TwitterAuthKey    string
@@ -362,7 +363,7 @@ func OnPrivMsg(e *irc.Event) {
 		case "!tac":
 			{
 				if len(cmd) > 1 {
-					twu.LoadToken(e, cmd[1])
+					twu.LoadTokenCmd(e, cmd[1])
 				} else {
 					twu.ListTokens(e)
 				}
@@ -443,7 +444,8 @@ func main() {
 		i.Join("#twitter")
 		i.Join("#twitterspam")
 
-		//twu.ListenToUserStream(i, tk)
+		tk := twu.LoadToken(opt.TwitterStreamToken)
+		twu.ListenToUserStream(i, tk)
 
 		//load remote connections
 		rf, fer := ioutil.ReadFile("remote.json")
