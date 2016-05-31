@@ -107,7 +107,7 @@ type HttpUtils struct {
 func (*HttpUtils) ParseYoutubeLink(e *irc.Event) {
 	msg := e.Message()
 
-	ytr, _ := regexp.Compile("\\?v=(\\w+)")
+	ytr, _ := regexp.Compile("\\?v=([-|\\w]+)")
 	ytm := ytr.FindAllStringSubmatch(msg, -1)
 	if len(ytm) > 0 {
 		for _, y := range ytm {
