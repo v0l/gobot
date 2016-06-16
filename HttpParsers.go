@@ -202,6 +202,9 @@ func (*HttpUtils) SearchGoogle(e *irc.Event, q string) {
 	req, _ := http.NewRequest("GET", fmt.Sprintf("https://www.google.ie/search?q=%s&gws_rd=ssl", q), nil)
 	req.Header.Set("User-Agent", USERAGENT)
 	req.Header.Add("Accept-Encoding", "gzip")
+	req.Header.Add("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8")
+	req.Header.Add("Accept-Language", "en-US,en;q=0.8,el;q=0.6,es;q=0.4")
+	req.Header.Add("Cache-Control", "max-age=0")
 
 	doc, de := client.Do(req)
 	if de == nil {
@@ -210,6 +213,11 @@ func (*HttpUtils) SearchGoogle(e *irc.Event, q string) {
 		gz, gze := gzip.NewReader(doc.Body)
 		if gze != nil {
 			fmt.Printf("GZIP error: %s\n", gze)
+
+			//write response
+			bdy, _ := ioutil.ReadAll(doc.Body)
+			ioutil.WriteFile(".lastsearch", bdy, 664)
+
 			return
 		}
 		defer gz.Close()

@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"math/rand"
 	"net"
+	"net/url"
 	"strconv"
 	"strings"
 	"time"
@@ -255,7 +256,7 @@ func OnPrivMsg(e *irc.Event) {
 			}
 		case "!s":
 			{
-				q := strings.TrimSpace(strings.Replace(args[1], "!s ", "", -1))
+				q := url.QueryEscape(strings.TrimSpace(strings.Replace(args[1], "!s ", "", -1)))
 				utl := new(HttpUtils)
 				utl.SearchGoogle(e, q)
 				break
