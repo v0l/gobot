@@ -223,7 +223,6 @@ func (*HttpUtils) SearchGoogle(e *irc.Event, q string) {
 		done := false
 		var f func(*html.Node)
 		f = func(n *html.Node) {
-
 			if n.Type == html.ElementNode && n.Data == "h3" && !done {
 
 				for _, a := range n.Attr {
@@ -247,6 +246,10 @@ func (*HttpUtils) SearchGoogle(e *irc.Event, q string) {
 			}
 		}
 		f(z)
+
+		if !done {
+			e.Connection.Privmsgf(e.Arguments[0], "%s No results found :(", e.Nick)
+		}
 	} else {
 		e.Connection.Privmsgf(e.Arguments[0], "%s: %s", e.Nick, de)
 	}
