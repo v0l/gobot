@@ -52,6 +52,7 @@ type Options struct {
 
 	//Google
 	GoogleNID string
+	UserAgent string
 }
 
 var opt = Options{}

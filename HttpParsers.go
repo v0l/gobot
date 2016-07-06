@@ -97,10 +97,6 @@ type YtData struct {
 	} `json:"items"`
 }
 
-const (
-	USERAGENT string = "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.94 Safari/537.36"
-)
-
 type HttpUtils struct {
 }
 
@@ -205,7 +201,7 @@ func (*HttpUtils) SearchGoogle(e *irc.Event, q string) {
 	client := &http.Client{}
 	client.CheckRedirect = nil
 	req, _ := http.NewRequest("GET", fmt.Sprintf("https://www.google.ie/search?q=%s&gws_rd=ssl", q), nil)
-	req.Header.Set("User-Agent", USERAGENT)
+	req.Header.Set("User-Agent", opt.UserAgent)
 	req.Header.Add("Accept-Encoding", "gzip")
 	req.Header.Add("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8")
 	req.Header.Add("Accept-Language", "en-US,en;q=0.8,el;q=0.6,es;q=0.4")
@@ -323,7 +319,7 @@ func (*HttpUtils) SearchUrbanDictionary(e *irc.Event, q string) {
 func (*HttpUtils) GetFunFact(e *irc.Event) {
 	client := &http.Client{}
 	req, _ := http.NewRequest("GET", "https://www.google.ie/search?q=im+feeling+curious&gws_rd=ssl", nil)
-	req.Header.Set("User-Agent", USERAGENT)
+	req.Header.Set("User-Agent", opt.UserAgent)
 	doc, de := client.Do(req)
 	if de == nil {
 		defer doc.Body.Close()
@@ -356,7 +352,7 @@ func (*HttpUtils) GetFunFact(e *irc.Event) {
 func (*HttpUtils) GetContentType(url string) string {
 	client := &http.Client{}
 	req, _ := http.NewRequest("HEAD", url, nil)
-	req.Header.Set("User-Agent", USERAGENT)
+	req.Header.Set("User-Agent", opt.UserAgent)
 	doc, de := client.Do(req)
 	if de == nil {
 		defer doc.Body.Close()
@@ -369,7 +365,7 @@ func (*HttpUtils) GetContentType(url string) string {
 func (*HttpUtils) GetRemoteImageBase64(url string) string {
 	client := &http.Client{}
 	req, _ := http.NewRequest("GET", url, nil)
-	req.Header.Set("User-Agent", USERAGENT)
+	req.Header.Set("User-Agent", opt.UserAgent)
 	doc, de := client.Do(req)
 	if de == nil {
 		defer doc.Body.Close()
@@ -386,7 +382,7 @@ func (*HttpUtils) GetRemoteImageBase64(url string) string {
 func (*HttpUtils) GetBodyText(url string) string {
 	client := &http.Client{}
 	req, _ := http.NewRequest("GET", url, nil)
-	req.Header.Set("User-Agent", USERAGENT)
+	req.Header.Set("User-Agent", opt.UserAgent)
 	doc, de := client.Do(req)
 	if de == nil {
 		defer doc.Body.Close()
