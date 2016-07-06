@@ -197,6 +197,11 @@ func (*HttpUtils) GetHttpTitle(e *irc.Event) {
 }
 
 func (*HttpUtils) SearchGoogle(e *irc.Event, q string) {
+	cookie := http.Cookie{
+		Name:  "NID",
+		Value: opt.GoogleNID,
+	}
+
 	client := &http.Client{}
 	client.CheckRedirect = nil
 	req, _ := http.NewRequest("GET", fmt.Sprintf("https://www.google.ie/search?q=%s&gws_rd=ssl", q), nil)
@@ -204,6 +209,8 @@ func (*HttpUtils) SearchGoogle(e *irc.Event, q string) {
 	req.Header.Add("Accept-Encoding", "gzip")
 	req.Header.Add("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8")
 	req.Header.Add("Accept-Language", "en-US,en;q=0.8,el;q=0.6,es;q=0.4")
+	req.AddCookie(&cookie)
+
 	req.Header.Add("Cache-Control", "max-age=0")
 
 	doc, de := client.Do(req)

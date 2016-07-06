@@ -49,6 +49,9 @@ type Options struct {
 	MailServer   string
 	MailUser     string
 	MailPassword string
+
+	//Google
+	GoogleNID string
 }
 
 var opt = Options{}
