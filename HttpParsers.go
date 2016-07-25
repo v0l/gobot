@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"math"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -289,16 +290,13 @@ func (*HttpUtils) SearchUrbanDictionary(e *irc.Event, q string) {
 							}
 						}
 
-						if len(text) > 140 {
-							e.Connection.Privmsgf(e.Arguments[0], "[(%s) - %s]: %s", e.Nick, q, text[0:140])
-							for x := 0; x < (len(text)-140)/140; x++ {
-								st := 140 + (x * 140)
-								if st+140 > len(text) {
-									e.Connection.Privmsgf(e.Arguments[0], "%s", text[st:len(text)-st])
-								} else {
-									e.Connection.Privmsgf(e.Arguments[0], "%s", text[st:st+140])
-								}
+						maxlen := 200
 
+						if len(text) > maxlen {
+							e.Connection.Privmsgf(e.Arguments[0], "[(%s) - %s]: %s", e.Nick, q, text[0:maxlen])
+							for x := 0; x < len(text); x += maxlen {
+								end := (int)(math.Min((float64)(x+maxlen), (float64)(len(text))))
+								e.Connection.Privmsgf(e.Arguments[0], "%s", text[x:end])
 							}
 						} else {
 							e.Connection.Privmsgf(e.Arguments[0], "[(%s) - %s]: %s", e.Nick, q, text)
