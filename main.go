@@ -132,6 +132,14 @@ func OnPrivMsg(e *irc.Event) {
 				}
 				break
 			}
+		case "!end":{
+				end := time.Date(2066, time.June, 6, 12, 34, 56, 0, time.UTC)
+				dl := end.Sub(time.Now())
+				
+				dld := dl.Hours() / 24
+				e.Connection.Privmsgf(args[0], "[%v] %.2f days untill you no longer exist.", e.Nick, dld)
+				break
+			}
 		case "!ip":
 			{
 				if len(cmd) > 1 {
