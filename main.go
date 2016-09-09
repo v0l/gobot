@@ -137,7 +137,7 @@ func OnPrivMsg(e *irc.Event) {
 				dl := end.Sub(time.Now())
 				
 				dld := dl.Hours() / 24
-				e.Connection.Privmsgf(args[0], "[%v] %.2f days untill you no longer exist.", e.Nick, dld)
+				e.Connection.Privmsgf(args[0], "[%v] %.2f days until you no longer exist.", e.Nick, dld)
 				break
 			}
 		case "!ip":
