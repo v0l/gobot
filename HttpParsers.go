@@ -290,7 +290,7 @@ func (*HttpUtils) SearchGoogle(e *irc.Event, q string) {
 		f(z)
 
 		if !done {
-			e.Connection.Privmsgf(e.Arguments[0], "%s No results found :(", e.Nick)
+			x(doc.Body, "No results")
 		}
 	} else {
 		e.Connection.Privmsgf(e.Arguments[0], "%s: %s", e.Nick, de)
