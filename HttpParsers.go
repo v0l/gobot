@@ -11,6 +11,7 @@ import (
 	"net/url"
 	"regexp"
 	"strings"
+	"bufio"
 
 	"github.com/thoj/go-ircevent"
 	"golang.org/x/net/html"
@@ -198,10 +199,6 @@ func (*HttpUtils) SearchGoogle(e *irc.Event, q string) {
 		Name:  "CONSENT",
 		Value: opt.GoogleConsent,
 	}
-	cookie1 := http.Cookie{
-		Name:  "DV",
-		Value: opt.GoogleDV,
-	}
 	cookie2 := http.Cookie{
 		Name:  "NID",
 		Value: opt.GoogleNID,
@@ -211,11 +208,10 @@ func (*HttpUtils) SearchGoogle(e *irc.Event, q string) {
 	client.CheckRedirect = nil
 	req, _ := http.NewRequest("GET", fmt.Sprintf("https://www.google.ie/search?q=%s&gws_rd=ssl", q), nil)
 	req.Header.Set("User-Agent", opt.UserAgent)
-	req.Header.Add("Accept-Encoding", "gzip")
+	//req.Header.Add("Accept-Encoding", "gzip")
 	req.Header.Add("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8")
 	req.Header.Add("Accept-Language", "en-US,en;q=0.8,el;q=0.6,es;q=0.4")
 	req.AddCookie(&cookie)
-	req.AddCookie(&cookie1)
 	req.AddCookie(&cookie2)
 	
 	req.Header.Add("Cache-Control", "max-age=0")
@@ -223,23 +219,43 @@ func (*HttpUtils) SearchGoogle(e *irc.Event, q string) {
 	doc, de := client.Do(req)
 	if de == nil {
 		defer doc.Body.Close()
+		
+		bdy, _ := ioutil.ReadAll(doc.Body)
+		ioutil.WriteFile(".lastsearch", bdy, 664)
 
-		gz, gze := gzip.NewReader(doc.Body)
-		if gze != nil {
-			fmt.Printf("GZIP error: %s\n", gze)
-
-			//write response
-			bdy, _ := ioutil.ReadAll(doc.Body)
-			ioutil.WriteFile(".lastsearch", bdy, 664)
-
-			return
-		}
-		defer gz.Close()
-
-		z, zer := html.Parse(gz)
-		if zer != nil {
-			fmt.Printf("HTML error: %s\n", zer)
-			return
+		var z *html.Node
+		
+		//check stream is gzipped
+		cg := bufio.NewReader(doc.Body)
+		mg, mge := cg.Peek(2)
+		
+		if mge != nil {
+			if mg[0] == 0x1f && mg[1] == 0x8b {
+				//this is gzip stream
+				
+				gz, gze := gzip.NewReader(doc.Body)
+				if gze != nil {
+					e.Connection.Privmsgf(e.Arguments[0], "%s: idk...", e.Nick)
+					return
+				}
+				defer gz.Close()
+				
+				ze, zer := html.Parse(gz)
+				if zer == nil{
+					z = ze
+				}else{
+					e.Connection.Privmsgf(e.Arguments[0], "%s: idk...", e.Nick)
+					return
+				}
+			}else{
+				ze, zer := html.Parse(cg)
+				if zer == nil{
+					z = ze
+				}else{
+					e.Connection.Privmsgf(e.Arguments[0], "%s: idk...", e.Nick)
+					return
+				}
+			}
 		}
 
 		done := false
