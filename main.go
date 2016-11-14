@@ -52,6 +52,8 @@ type Options struct {
 
 	//Google
 	GoogleNID string
+	GoogleDV string
+	GoogleConsent string
 	UserAgent string
 }
 
