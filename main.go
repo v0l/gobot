@@ -52,9 +52,9 @@ type Options struct {
 
 	//Google
 	GoogleNID string
-	GoogleDV string
 	GoogleConsent string
 	UserAgent string
+	HttpBindUp string
 }
 
 var opt = Options{}

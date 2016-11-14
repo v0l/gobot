@@ -13,6 +13,9 @@ import (
 	"strings"
 	"bufio"
 	"io"
+	"net"
+	"time"
+	"os"
 	
 	"github.com/thoj/go-ircevent"
 	"golang.org/x/net/html"
@@ -196,6 +199,27 @@ func (*HttpUtils) GetHttpTitle(e *irc.Event) {
 }
 
 func (*HttpUtils) SearchGoogle(e *irc.Event, q string) {
+	localAddr, err := net.ResolveIPAddr("ip", opt.HttpBindUp)
+    if err != nil {
+        return
+    }
+
+    localTCPAddr := net.TCPAddr{
+        IP: localAddr.IP,
+    }
+
+    d := net.Dialer{
+        LocalAddr: &localTCPAddr,
+        Timeout:   30 * time.Second,
+        KeepAlive: 30 * time.Second,
+    }
+
+    tr := &http.Transport{
+        Proxy:               http.ProxyFromEnvironment,
+        Dial:                d.Dial,
+        TLSHandshakeTimeout: 10 * time.Second,
+    }
+	
 	cookie := http.Cookie{
 		Name:  "CONSENT",
 		Value: opt.GoogleConsent,
@@ -205,7 +229,7 @@ func (*HttpUtils) SearchGoogle(e *irc.Event, q string) {
 		Value: opt.GoogleNID,
 	}
 
-	client := &http.Client{}
+	client := &http.Client{Transport: tr}
 	client.CheckRedirect = nil
 	req, _ := http.NewRequest("GET", fmt.Sprintf("https://www.google.ie/search?q=%s&gws_rd=ssl", q), nil)
 	req.Header.Set("User-Agent", opt.UserAgent)
@@ -291,6 +315,10 @@ func (*HttpUtils) SearchGoogle(e *irc.Event, q string) {
 
 		if !done {
 			x(doc.Body, "No results")
+			ce, cee := os.Create(".lastsearch")
+			if cee == nil {			
+				html.Render(ce, z)
+			}
 		}
 	} else {
 		e.Connection.Privmsgf(e.Arguments[0], "%s: %s", e.Nick, de)
