@@ -13,8 +13,6 @@ import (
 	"strings"
 	"bufio"
 	"io"
-	"net"
-	"time"
 	"os"
 	
 	"github.com/thoj/go-ircevent"
