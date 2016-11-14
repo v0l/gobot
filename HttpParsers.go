@@ -12,7 +12,8 @@ import (
 	"regexp"
 	"strings"
 	"bufio"
-
+	"io"
+	
 	"github.com/thoj/go-ircevent"
 	"golang.org/x/net/html"
 )
@@ -220,22 +221,26 @@ func (*HttpUtils) SearchGoogle(e *irc.Event, q string) {
 	if de == nil {
 		defer doc.Body.Close()
 		
-		bdy, _ := ioutil.ReadAll(doc.Body)
-		ioutil.WriteFile(".lastsearch", bdy, 664)
-
+		var x func(d io.ReadCloser, msg string)
+		x = func(d io.ReadCloser, msg string) { 
+			bdy, _ := ioutil.ReadAll(d)
+			ioutil.WriteFile(".lastsearch", bdy, 664)
+			e.Connection.Privmsgf(e.Arguments[0], "%s: idk... %s", e.Nick, msg)
+		}
+		
 		var z *html.Node
 		
 		//check stream is gzipped
 		cg := bufio.NewReader(doc.Body)
 		mg, mge := cg.Peek(2)
 		
-		if mge != nil {
+		if mge == nil {
 			if mg[0] == 0x1f && mg[1] == 0x8b {
 				//this is gzip stream
 				
 				gz, gze := gzip.NewReader(doc.Body)
 				if gze != nil {
-					e.Connection.Privmsgf(e.Arguments[0], "%s: idk...", e.Nick)
+					x(doc.Body, "")
 					return
 				}
 				defer gz.Close()
@@ -244,7 +249,7 @@ func (*HttpUtils) SearchGoogle(e *irc.Event, q string) {
 				if zer == nil{
 					z = ze
 				}else{
-					e.Connection.Privmsgf(e.Arguments[0], "%s: idk...", e.Nick)
+					x(doc.Body, "")
 					return
 				}
 			}else{
@@ -252,10 +257,13 @@ func (*HttpUtils) SearchGoogle(e *irc.Event, q string) {
 				if zer == nil{
 					z = ze
 				}else{
-					e.Connection.Privmsgf(e.Arguments[0], "%s: idk...", e.Nick)
+					x(doc.Body, "")
 					return
 				}
 			}
+		}else{
+			x(doc.Body, mge.Error())
+			return
 		}
 
 		done := false
@@ -273,7 +281,7 @@ func (*HttpUtils) SearchGoogle(e *irc.Event, q string) {
 				if done {
 					for _, a := range n.FirstChild.Attr {
 						if a.Key == "href" {
-							e.Connection.Privmsgf(e.Arguments[0], "%s: %s (%s)", e.Nick, a.Val, n.FirstChild.FirstChild.Data)
+							e.Connection.Privmsgf(e.Arguments[0], "%s: %s (%s)", e.Nick, a.Val[7:], n.FirstChild.FirstChild.Data)
 							break
 						}
 					}
