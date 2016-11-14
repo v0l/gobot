@@ -110,6 +110,11 @@ func OnPrivMsg(e *irc.Event) {
 				e.Connection.Privmsgf(args[0], "!thelp \t- Gets twitter command list")
 				break
 			}
+		case "!reload":{
+				loadConfig()
+				e.Connection.Privmsgf(args[0], "Config loaded..")
+				break
+			}
 		case "!whois":
 			{
 				if len(cmd) > 1 {
@@ -401,8 +406,7 @@ func OnPrivMsg(e *irc.Event) {
 	}
 }
 
-func main() {
-	irc_ready := make(chan int)
+func loadConfig(){
 	of, ofe := ioutil.ReadFile("options.conf")
 	if ofe == nil {
 		je := json.Unmarshal(of, &opt)
@@ -425,6 +429,11 @@ func main() {
 		jout, _ := json.Marshal(opt)
 		ioutil.WriteFile("options.conf", jout, 0644)
 	}
+}
+
+func main() {
+	irc_ready := make(chan int)
+	loadConfig()
 
 	i := irc.IRC(opt.Nick, opt.Nick)
 	i.Debug = true
