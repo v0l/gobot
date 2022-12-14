@@ -1,0 +1,8 @@
+{
+    "require": {
+        "abraham/twitteroauth": "^4.0"
+    },
+    "autoload": {
+        "files": ["auth.php"]
+    }
+}

@@ -20,7 +20,7 @@ import (
 type Options struct {
 	Server       string
 	Nick         string
-	useTLS       bool
+	UseTLS       bool
 	DefaultChans []string
 	Oper         bool
 	OperDetails  []string
@@ -420,7 +420,7 @@ func loadConfig(){
 		opt = Options{
 			Server:          "irc.harkin.me:6667",
 			Nick:            "BOT-N",
-			useTLS:          true,
+			UseTLS:          true,
 			DefaultChans:    []string{"#lobby"},
 			OperDetails:     []string{ /* USERNAME, PASSWORD*/ },
 			TwitterTokenDir: "./",
@@ -437,8 +437,12 @@ func main() {
 
 	i := irc.IRC(opt.Nick, opt.Nick)
 	i.Debug = true
-	i.UseTLS = opt.useTLS
-	i.TLSConfig = &tls.Config{InsecureSkipVerify: true}
+	i.UseTLS = opt.UseTLS
+	i.VerboseCallbackHandler = true
+	i.TLSConfig = &tls.Config{
+		InsecureSkipVerify: true,
+		MinVersion: tls.VersionTLS10,
+	}
 
 	err := i.Connect(opt.Server)
 	if err == nil {

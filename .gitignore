@@ -23,3 +23,9 @@ _testmain.go
 *.test
 *.prof
 options.conf
+
+gobot
+tokens/
+vendor/
+.DS_Store
+.lastsearch

@@ -1,11 +1,11 @@
 <?php
 session_start();
 
-require 'twitteroauth/autoload.php';
+require 'vendor/autoload.php';
 use Abraham\TwitterOAuth\TwitterOAuth;
 
-$key = '';
-$sec = '';
+$key = 'CHANGE_ME';
+$sec = 'CHANGE_ME';
 
 $request_token = [];
 $url = '';
@@ -17,7 +17,7 @@ if(isset($_SESSION["oauth_token"]))
 else
 {
         $connection = new TwitterOAuth($key, $sec);
-        $request_token = $connection->oauth('oauth/request_token', array('oauth_callback' => 'http://0x.tf/tauth.php'));
+        $request_token = $connection->oauth('oauth/request_token', array('oauth_callback' => 'http://localhost:9999/auth.php'));
         $url = $connection->url('oauth/authorize', array('oauth_token' => $request_token['oauth_token']));
 
         $_SESSION['oauth_token'] = $request_token['oauth_token'];
