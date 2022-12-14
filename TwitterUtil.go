@@ -192,7 +192,7 @@ func (t *TwitterUtil) SendTweet(e *irc.Event, q string) {
 	vals := url.Values{}
 
 	pl := t.GetLoc(api)
-	if pl.err == nil {
+	if pl.err == nil && len(pl.result.Result.Places) > 0 {
 		vals.Add("lat", pl.lat)
 		vals.Add("long", pl.long)
 		vals.Add("place_id", pl.result.Result.Places[0].ID)
