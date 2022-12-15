@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"github.com/ChimeraCoder/anaconda"
-	"github.com/thoj/go-ircevent"
+	"github.com/v0l/go-ircevent"
 )
 
 type TwitterAuthToken struct {

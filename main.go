@@ -14,7 +14,7 @@ import (
 	"time"
 
 	"github.com/domainr/whois"
-	"github.com/thoj/go-ircevent"
+	"github.com/v0l/go-ircevent"
 )
 
 type Options struct {

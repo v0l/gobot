@@ -6,7 +6,7 @@ require (
 	github.com/ChimeraCoder/anaconda v2.0.0+incompatible
 	github.com/domainr/whois v0.1.0
 	github.com/robertkrimen/otto v0.2.1
-	github.com/thoj/go-ircevent v0.0.0-20210723090443-73e444401d64
+	github.com/v0l/go-ircevent v0.0.0-20221215132314-e8c9ca3f72c2
 	golang.org/x/net v0.4.0
 )
 
@@ -19,7 +19,7 @@ require (
 	github.com/dustin/gojson v0.0.0-20160307161227-2e71ec9dd5ad // indirect
 	github.com/garyburd/go-oauth v0.0.0-20180319155456-bca2e7f09a17 // indirect
 	github.com/saintfish/chardet v0.0.0-20120816061221-3af4cd4741ca // indirect
-	github.com/zonedb/zonedb v1.0.3544 // indirect
+	github.com/zonedb/zonedb v1.0.3925 // indirect
 	golang.org/x/text v0.5.0 // indirect
 	gopkg.in/sourcemap.v1 v1.0.5 // indirect
 )

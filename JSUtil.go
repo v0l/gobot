@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/robertkrimen/otto"
-	"github.com/thoj/go-ircevent"
+	"github.com/v0l/go-ircevent"
 )
 
 type JSUtil struct {

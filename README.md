@@ -6,7 +6,7 @@ Golang IRC bot
 
 Install deps
 ```
-github.com/thoj/go-ircevent
+github.com/v0l/go-ircevent
 github.com/ChimeraCoder/anaconda
 github.com/robertkrimen/otto
 golang.org/x/net/html

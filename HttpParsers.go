@@ -15,7 +15,7 @@ import (
 	"io"
 	"os"
 	
-	"github.com/thoj/go-ircevent"
+	"github.com/v0l/go-ircevent"
 	"golang.org/x/net/html"
 )
 

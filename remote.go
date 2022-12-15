@@ -4,7 +4,7 @@ import (
 	"crypto/tls"
 	"fmt"
 
-	"github.com/thoj/go-ircevent"
+	"github.com/v0l/go-ircevent"
 )
 
 type RemoteIrc struct {

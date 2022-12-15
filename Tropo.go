@@ -9,7 +9,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/thoj/go-ircevent"
+	"github.com/v0l/go-ircevent"
 )
 
 type TropoResponse struct {
